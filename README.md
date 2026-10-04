@@ -391,7 +391,7 @@ $$
 So the group law is **relativistic velocity addition** in rapidity form. The hyperbolic distance in the Poincaré disc from the origin to the point r is
 
 $$
-d_{\mathbb{H}}(0,r) = 2\,\operatorname{artanh} r = 2\pi t,
+d_{\mathbb{H}}(0,r) = 2 \mathrm{artanh}(r) = 2\pi t
 $$
 
 so time is, up to a constant, hyperbolic distance travelled. The map sends the origin to the point r, so the push-forward of the uniform distribution on the circle is the harmonic measure seen from r, that is the Poisson kernel
