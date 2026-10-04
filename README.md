@@ -3,6 +3,7 @@
 *An exactly solvable gradient flow whose time-evolution maps are smooth bijections of the real line at every finite time, and whose infinite-time limit is rounding to the nearest integer.*
 
 ---
+![Dashboard](dashboar.png)
 
 ## Abstract
 
