@@ -236,7 +236,7 @@ $$
 
 The limiting map is rounding to the nearest integer, except on the half-integers, which remain fixed.
 
-**Remark (the convergence is not uniform).** The limit holds pointwise on the open cells, and uniformly only on compact subsets of them. Because the limit map is discontinuous, uniform convergence on the whole line is impossible: for every finite $t$, $\sup_x |R_t(x)-\operatorname{round}(x)| = \tfrac12$, since points near a half-integer have barely moved. Quantitatively, for $0<\delta<\tfrac12$ the fraction of a uniformly distributed start lying within $\delta$ of an integer at time $t$ is
+**Remark (the convergence is not uniform).** The limit holds pointwise on the open cells, and uniformly only on compact subsets of them. Because the limit map is discontinuous, uniform convergence on the whole line is impossible: for every finite $t$, $\sup_x |R_t(x)-\mathrm{round}(x)| = \frac{1}{2}$, since points near a half-integer have barely moved. Quantitatively, for $0<\delta<\tfrac12$ the fraction of a uniformly distributed start lying within $\delta$ of an integer at time $t$ is
 
 $$
 2R_{-t}(\delta) = \frac{2}{\pi}\arctan\!\frac{\tan\pi\delta}{k}, \qquad k = e^{-2\pi t},
@@ -350,7 +350,7 @@ $$
 R_t(x) = n + \frac{1}{\pi}\arctan\!\big(k\,T\big) \;\longrightarrow\; n.
 $$
 
-For the remark: since $R_t$ is increasing and fixes $n$, $|R_t(x)-n|\le\delta$ exactly when $|x-n|\le R_{-t}(\delta)$ (Result 4), so each unit cell contributes length $2R_{-t}(\delta)$, and the cell form gives $R_{-t}(\delta)=\frac1\pi\arctan(\tan(\pi\delta)/k)$. The unresolved fraction follows from $\arctan a+\arctan(1/a)=\pi/2$, and its asymptotics from $\arctan z\sim z$ and $\tan z\sim z$. For the supremum, $R_t$ is continuous with $R_t(n+\tfrac12)=n+\tfrac12$, so $R_t(x)\to n+\tfrac12$ as $x\uparrow n+\tfrac12$, while $\operatorname{round}(x)=n$ on the open cell; the gap therefore tends to $\tfrac12$.
+For the remark: since $R_t$ is increasing and fixes $n$, $|R_t(x)-n|\le\delta$ exactly when $|x-n|\le R_{-t}(\delta)$ (Result 4), so each unit cell contributes length $2R_{-t}(\delta)$, and the cell form gives $R_{-t}(\delta)=\frac1\pi\arctan(\tan(\pi\delta)/k)$. The unresolved fraction follows from $\arctan a+\arctan(1/a)=\pi/2$, and its asymptotics from $\arctan z\sim z$ and $\tan z\sim z$. For the supremum, $R_t$ is continuous with $R_t(n+\tfrac12)=n+\tfrac12$, so $R_t(x)\to n+\tfrac12$ as $x\uparrow n+\tfrac12$, while $\mathrm{round}(x)=n$ on the open cell; the gap therefore tends to $\tfrac12$.
 
 **Result 6.** By the chain rule, the derivative of the potential evaluated along the trajectory is
 
