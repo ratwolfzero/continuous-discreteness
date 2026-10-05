@@ -94,7 +94,7 @@ def _rk4(x0, T, n=4000):
     """Independent check: integrate dx/dt = -sin(2 pi x) with classic RK4."""
     x = np.array(x0, dtype=float)
     h = np.asarray(T, dtype=float) / n
-    def f(u): return -np.sin(TWO_PI * u)
+    f = lambda u: -np.sin(TWO_PI * u)
     for _ in range(n):
         k1 = f(x)
         k2 = f(x + 0.5 * h * k1)
@@ -113,17 +113,13 @@ def selftest(verbose=True):
     s = rng.uniform(0.0, 1.5, N)
 
     results = {}
-    results["cell form  vs  global closed form"] = np.max(
-        np.abs(flow(t, x) - flow_closed_form(t, x)))
-    results["flow  vs  RK4 integration of the ODE"] = np.max(
-        np.abs(flow(t, x) - _rk4(x, t)))
-    results["group law  R_{s+t} = R_s o R_t"] = np.max(
-        np.abs(flow(s + t, x) - flow(s, flow(t, x))))
+    results["cell form  vs  global closed form"] = np.max(np.abs(flow(t, x) - flow_closed_form(t, x)))
+    results["flow  vs  RK4 integration of the ODE"] = np.max(np.abs(flow(t, x) - _rk4(x, t)))
+    results["group law  R_{s+t} = R_s o R_t"] = np.max(np.abs(flow(s + t, x) - flow(s, flow(t, x))))
 
     z = np.exp(1j * TWO_PI * x)
     r = np.tanh(np.pi * t)
-    results["Moebius form  (z+r)/(1+rz)"] = np.max(
-        np.abs(np.exp(1j * TWO_PI * flow(t, x)) - (z + r) / (1 + r * z)))
+    results["Moebius form  (z+r)/(1+rz)"] = np.max(np.abs(np.exp(1j * TWO_PI * flow(t, x)) - (z + r) / (1 + r * z)))
 
     # slopes by central differences; kept to moderate t where the map is not yet a near-step
     h = 1e-6
@@ -131,21 +127,23 @@ def selftest(verbose=True):
     k = np.exp(-TWO_PI * tm)
     E = (1 + np.cos(TWO_PI * x)) + k**2 * (1 - np.cos(TWO_PI * x))
     slope_fd = (flow(tm, x + h) - flow(tm, x - h)) / (2 * h)
-    results["slope  dR/dx = 2k/E  (relative)"] = np.max(
-        np.abs(slope_fd / (2 * k / E) - 1))
+    results["slope  dR/dx = 2k/E  (relative)"] = np.max(np.abs(slope_fd / (2 * k / E) - 1))
 
     n = np.arange(-3, 4, dtype=float)
     tt = 0.7
     sl_int = (flow(tt, n + h) - flow(tt, n - h)) / (2 * h)
     sl_half = (flow(tt, n + 0.5 + h) - flow(tt, n + 0.5 - h)) / (2 * h)
-    results["slope at integers  = e^{-2 pi t}"] = np.max(
-        np.abs(sl_int - math.exp(-TWO_PI * tt)))
-    results["slope at half-integers = e^{+2 pi t}"] = np.max(
-        np.abs(sl_half / math.exp(TWO_PI * tt) - 1))
+    results["slope at integers  = e^{-2 pi t}"] = np.max(np.abs(sl_int - math.exp(-TWO_PI * tt)))
+    results["slope at half-integers = e^{+2 pi t}"] = np.max(np.abs(sl_half / math.exp(TWO_PI * tt) - 1))
 
     xs = np.sort(rng.uniform(-2, 2, 4000))
-    results["monotone (min increment, want > 0)"] = - \
-        min(0.0, np.min(np.diff(flow(1.3, xs))))
+    results["monotone (min increment, want > 0)"] = -min(0.0, np.min(np.diff(flow(1.3, xs))))
+
+    # resolved_fraction(t) = 2 x_edge, where x_edge is the start that lands exactly at SNAP_TOL;
+    # check that by pushing x_edge forward with the flow (independent of the arctan formula)
+    t_edge = np.array([0.0, 0.1, 0.4, 1.0, 1.5, 3.0])
+    x_edge = np.array([0.5 * resolved_fraction(te) for te in t_edge])
+    results["resolved fraction: edge start lands at tol"] = np.max(np.abs(flow(t_edge, x_edge) - SNAP_TOL))
 
     ok = all(v < 1e-6 for v in results.values())
     if verbose:
@@ -187,13 +185,38 @@ def shade_cells(ax, orient):
         span(n - 0.5, n + 0.5, color=cell_color(n), alpha=0.09, lw=0, zorder=0)
 
 
-def snapped_fraction(xt, tol=0.02):
+SNAP_TOL = 0.02                                  # "resolved" = within this of an integer
+
+
+def snapped_fraction(xt, tol=SNAP_TOL):
+    """Fraction of the *plotted marbles* within tol of an integer.  This depends on where
+    the marbles happen to start: with the default grid the closest one is 0.01 from a
+    half-integer, so it reaches 100% at a finite time even though points arbitrarily
+    close to a half-integer are never resolved.  See resolved_fraction for the true value."""
     return float(np.mean(np.abs(xt - np.round(xt)) < tol))
 
 
+def resolved_fraction(t, tol=SNAP_TOL):
+    """Exact fraction of a uniformly distributed start (over any whole number of cells)
+    that lies within tol of an integer at time t:
+
+        2 * R_{-t}(tol)  =  (2/pi) * arctan( tan(pi*tol) / k ),      k = exp(-2 pi t).
+
+    Reason: R_t is increasing and fixes the integer, so |R_t(x) - n| <= tol exactly when
+    |x - n| <= R_{-t}(tol).  Equals 2*tol at t = 0, is < 1 at every finite t, and the
+    unresolved remainder is ~ 2k / (pi^2 * tol) for small k and tol.  (atan2 keeps this
+    finite even if k underflows to 0.)"""
+    k = math.exp(-TWO_PI * float(t))
+    return (2.0 / math.pi) * math.atan2(math.tan(math.pi * tol), k)
+
+
+def fmt_pct(f):
+    """Percentage for display; never prints a rounded-up '100%' for a fraction below 1."""
+    return f"{100.0 * f:.1f}%" if f < 0.9995 else ">99.95%"
+
+
 def style_axes(ax, title):
-    ax.set_title(title, loc="left", fontsize=10.5,
-                 fontweight="bold", color=INK, pad=6)
+    ax.set_title(title, loc="left", fontsize=10.5, fontweight="bold", color=INK, pad=6)
     for sp in ("top", "right"):
         ax.spines[sp].set_visible(False)
     ax.tick_params(labelsize=8, colors="#444")
@@ -213,13 +236,10 @@ class LandscapePanel:
         shade_cells(ax, "v")
         ax.plot(xs, potential(xs), color=INK, lw=2.2, zorder=2)
         for n in (-1, 0, 1):
-            ax.plot([n], [potential(n)], "o", ms=8 if compact else 10,
-                    mfc="white", mec=INK, mew=1.6, zorder=3)
+            ax.plot([n], [potential(n)], "o", ms=8 if compact else 10, mfc="white", mec=INK, mew=1.6, zorder=3)
         for h in (-0.5, 0.5):
-            ax.plot([h], [potential(h)], "^",
-                    ms=8 if compact else 10, color=RED, zorder=3)
-            ax.axvline(h, color=RED, lw=0.8, ls=(
-                0, (3, 3)), alpha=0.5, zorder=1)
+            ax.plot([h], [potential(h)], "^", ms=8 if compact else 10, color=RED, zorder=3)
+            ax.axvline(h, color=RED, lw=0.8, ls=(0, (3, 3)), alpha=0.5, zorder=1)
         self.sc = ax.scatter(
             x0, potential(x0), s=14 if compact else 30, c=[cell_color(n) for n in dest],
             edgecolors="white", linewidths=0.5, zorder=5,
@@ -231,12 +251,9 @@ class LandscapePanel:
         ax.set_xticklabels(["", "-1", "-½", "0", "½", "1", ""])
         if not compact:
             ax.set_xlabel("position x", fontsize=9)
-            ax.text(0.0, -0.205, "stable: integers", ha="center",
-                    va="bottom", fontsize=8, color=INK)
-            ax.text(0.5, 0.185, "unstable: half-integers",
-                    ha="center", va="bottom", fontsize=8, color=RED)
-            ax.text(-0.5, 0.185, "unstable", ha="center",
-                    va="bottom", fontsize=8, color=RED)
+            ax.text(0.0, -0.205, "stable: integers", ha="center", va="bottom", fontsize=8, color=INK)
+            ax.text(0.5, 0.185, "unstable: half-integers", ha="center", va="bottom", fontsize=8, color=RED)
+            ax.text(-0.5, 0.185, "unstable", ha="center", va="bottom", fontsize=8, color=RED)
         for sp in ("left", "top", "right"):
             ax.spines[sp].set_visible(False)
 
@@ -254,24 +271,16 @@ class CirclePanel:
         th = np.linspace(0, TWO_PI, 400)
         for n in (-1, 0, 1):
             rr = 1.0 + 0.085 * (n + 1)
-            ax.plot(rr * np.cos(th), rr * np.sin(th),
-                    color=cell_color(n), lw=0.9, alpha=0.35, zorder=1)
+            ax.plot(rr * np.cos(th), rr * np.sin(th), color=cell_color(n), lw=0.9, alpha=0.35, zorder=1)
         # the two special points, marked just outside the rings so marbles never hide them
-        ax.plot([1.31], [0.0], "o", ms=9, mfc="white",
-                mec=INK, mew=1.8, zorder=3, clip_on=False)
+        ax.plot([1.31], [0.0], "o", ms=9, mfc="white", mec=INK, mew=1.8, zorder=3, clip_on=False)
         ax.plot([-1.31], [0.0], "^", ms=9, color=RED, zorder=3, clip_on=False)
-        ax.text(1.31, -0.17, "+1", ha="center",
-                va="top", fontsize=8.5, color=INK)
-        ax.text(-1.31, -0.17, "-1", ha="center",
-                va="top", fontsize=8.5, color=RED)
-        ax.text(0.0, 0.10, r"$z=e^{2\pi i x}$",
-                ha="center", va="center", fontsize=12, color=INK)
-        ax.text(0.0, -0.17, "one ring per cell", ha="center",
-                va="center", fontsize=7.5, color="#555")
-        ax.text(0.0, -1.58, "○  z = +1 : every integer (attracting)",
-                ha="center", va="top", fontsize=8, color=INK)
-        ax.text(0.0, -1.80, "▲  z = −1 : every half-integer (repelling)",
-                ha="center", va="top", fontsize=8, color=RED)
+        ax.text(1.31, -0.17, "+1", ha="center", va="top", fontsize=8.5, color=INK)
+        ax.text(-1.31, -0.17, "-1", ha="center", va="top", fontsize=8.5, color=RED)
+        ax.text(0.0, 0.10, r"$z=e^{2\pi i x}$", ha="center", va="center", fontsize=12, color=INK)
+        ax.text(0.0, -0.17, "one ring per cell", ha="center", va="center", fontsize=7.5, color="#555")
+        ax.text(0.0, -1.58, "○  z = +1 : every integer (attracting)", ha="center", va="top", fontsize=8, color=INK)
+        ax.text(0.0, -1.80, "▲  z = −1 : every half-integer (repelling)", ha="center", va="top", fontsize=8, color=RED)
         self.sc = ax.scatter(
             self.radius * np.cos(TWO_PI * x0), self.radius * np.sin(TWO_PI * x0), s=22,
             c=[cell_color(n) for n in dest], edgecolors="white", linewidths=0.4, zorder=5,
@@ -283,8 +292,7 @@ class CirclePanel:
 
     def update(self, t):
         ang = TWO_PI * flow(t, self.x0)
-        self.sc.set_offsets(np.column_stack(
-            [self.radius * np.cos(ang), self.radius * np.sin(ang)]))
+        self.sc.set_offsets(np.column_stack([self.radius * np.cos(ang), self.radius * np.sin(ang)]))
 
 
 class MapPanel:
@@ -296,15 +304,12 @@ class MapPanel:
         shade_cells(ax, "v")
         ax.plot([X_LO, X_HI], [X_LO, X_HI], color=GREY, lw=1, ls=":", zorder=1)
         for n in (-1, 0, 1):
-            ax.hlines(n, n - 0.5, n + 0.5, colors=INK,
-                      linestyles=(0, (4, 3)), lw=1.3, zorder=2)
+            ax.hlines(n, n - 0.5, n + 0.5, colors=INK, linestyles=(0, (4, 3)), lw=1.3, zorder=2)
         for g in ghost_times:
-            ax.plot(self.xs, flow(g, self.xs), color=GREY,
-                    lw=0.9, alpha=0.45, zorder=2)
+            ax.plot(self.xs, flow(g, self.xs), color=GREY, lw=0.9, alpha=0.45, zorder=2)
         (self.line,) = ax.plot(self.xs, self.xs, color=RED, lw=2.4, zorder=4)
         for n in (-1, 0, 1):
-            ax.plot([n], [n], "o", ms=6, mfc="white",
-                    mec=INK, mew=1.3, zorder=5)
+            ax.plot([n], [n], "o", ms=6, mfc="white", mec=INK, mew=1.3, zorder=5)
         for h in (-0.5, 0.5):
             ax.plot([h], [h], "^", ms=6, color=RED, zorder=5)
         ax.set_xlim(X_LO, X_HI)
@@ -329,8 +334,7 @@ class MapPanel:
         self.line.set_ydata(flow(t, self.xs))
         if self.note is not None:
             k = math.exp(-TWO_PI * t)
-            self.note.set_text(
-                f"slope at integers  {k:.3g}\nslope at half-integers  {1 / k:.3g}")
+            self.note.set_text(f"slope at integers  {k:.3g}\nslope at half-integers  {1 / k:.3g}")
 
 
 class SpaceTimePanel:
@@ -353,8 +357,7 @@ class SpaceTimePanel:
         for e in self.EPS_EXP:                         # starts hugging the unstable point
             for sgn in (-1, +1):
                 xs0 = 0.5 + sgn * 10.0 ** (-e)
-                ax.plot(tg, flow(tg, xs0), color=cell_color(
-                    round(xs0)), lw=1.7, alpha=0.95, zorder=3)
+                ax.plot(tg, flow(tg, xs0), color=cell_color(round(xs0)), lw=1.7, alpha=0.95, zorder=3)
         self.vline = ax.axvline(0.0, color=INK, lw=1.4, zorder=6)
         self.sc = ax.scatter(
             np.zeros_like(x0), x0, s=9, c=[cell_color(n) for n in dest],
@@ -364,13 +367,11 @@ class SpaceTimePanel:
         ax.set_ylim(X_LO, X_HI)
         ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
         ax.set_yticklabels(["", "-1", "-½", "0", "½", "1", ""])
-        ax.set_xlabel(
-            "time t      (dashed red: unstable half-integers)", fontsize=9)
+        ax.set_xlabel("time t      (dashed red: unstable half-integers)", fontsize=9)
 
     def update(self, t):
         self.vline.set_xdata([t, t])
-        self.sc.set_offsets(np.column_stack(
-            [np.full_like(self.x0, t), flow(t, self.x0)]))
+        self.sc.set_offsets(np.column_stack([np.full_like(self.x0, t), flow(t, self.x0)]))
 
 
 class DecayPanel:
@@ -398,12 +399,10 @@ class DecayPanel:
         ax.plot(tg, np.exp(-TWO_PI * tg) / np.pi, color=INK, lw=1.1, ls="--", zorder=2,
                 label=r"$\propto e^{-2\pi t}$")
         ax.axhline(self.DELTA, color=GREY, lw=0.9, ls=":", zorder=1)
-        ax.text(tmax * 0.985, self.DELTA * 1.25,
-                f"δ = {self.DELTA}", ha="right", va="bottom", fontsize=8, color="#555")
+        ax.text(tmax * 0.985, self.DELTA * 1.25, f"δ = {self.DELTA}", ha="right", va="bottom", fontsize=8, color="#555")
         first = True
         for e in self.EPS_EXP:                          # predicted resolution times
-            ts = math.log(1.0 / (math.pi**2 * 10.0 **
-                          (-e) * self.DELTA)) / TWO_PI
+            ts = math.log(1.0 / (math.pi**2 * 10.0 ** (-e) * self.DELTA)) / TWO_PI
             if ts <= tmax:
                 ax.plot([ts], [self.DELTA], "o", ms=7, mfc="none", mec=INK, mew=1.3, zorder=6,
                         label="predicted t*" if first else None)
@@ -422,8 +421,7 @@ class DecayPanel:
 
     def update(self, t):
         self.vline.set_xdata([t, t])
-        self.sc.set_offsets(np.column_stack(
-            [np.full(len(self.starts), t), flow(t, self.starts)]))
+        self.sc.set_offsets(np.column_stack([np.full(len(self.starts), t), flow(t, self.starts)]))
 
 
 # --------------------------------------------------------------------------- #
@@ -471,8 +469,7 @@ class Dashboard:
         )
         self.clock = self.fig.text(0.985, 0.955, "", fontsize=13, family="monospace", color=INK,
                                    ha="right", va="center")
-        self.stat = self.fig.text(
-            0.985, 0.915, "", fontsize=10, color="#444", ha="right", va="center")
+        self.stat = self.fig.text(0.985, 0.915, "", fontsize=10, color="#444", ha="right", va="center")
         self.update(0.0)
 
     def update(self, t):
@@ -483,7 +480,9 @@ class Dashboard:
         self.clock.set_text(f"t = {t:5.3f}   k = e^(-2πt) = {k:.3g}")
         frac = snapped_fraction(flow(t, self.x0))
         self.stat.set_text(
-            f"marbles within 0.02 of an integer: {100 * frac:3.0f}%")
+            f"within {SNAP_TOL:g} of an integer:  {fmt_pct(resolved_fraction(t))} of all starts"
+            f"  ·  {100 * frac:.0f}% of these marbles"
+        )
 
     # -- interactive ------------------------------------------------------- #
     def run_interactive(self):
@@ -535,8 +534,7 @@ class Dashboard:
         button.on_clicked(toggle)
         timer.add_callback(tick)
         fig.canvas.mpl_connect("key_press_event", on_key)
-        # prevent garbage collection
-        self._keepalive = (slider, button, timer)
+        self._keepalive = (slider, button, timer)        # prevent garbage collection
         self.plt.show()
 
 
@@ -554,14 +552,13 @@ def make_snapshot(plt, path, t, tmax, n_marbles, dpi):
 
 
 def make_filmstrip(plt, path, tmax, n_marbles, dpi):
-    times = sorted(
-        {t for t in (0.0, 0.05, 0.15, 0.4, 1.0) if t < tmax} | {tmax})
+    times = sorted({t for t in (0.0, 0.05, 0.15, 0.4, 1.0) if t < tmax} | {tmax})
     m = len(times)
     x0, dest = make_marbles(n_marbles)
     fig, axes = plt.subplots(
         2, m, figsize=(3.1 * m, 7.2), facecolor="white",
         gridspec_kw=dict(height_ratios=[1.0, 1.35], hspace=0.30, wspace=0.10,
-                         left=0.06, right=0.99, top=0.82, bottom=0.07),
+                         left=0.06, right=0.99, top=0.785, bottom=0.07),
     )
     for j, t in enumerate(times):
         axL, axM = axes[0, j], axes[1, j]
@@ -570,9 +567,8 @@ def make_filmstrip(plt, path, tmax, n_marbles, dpi):
         L.update(t)
         M.update(t)
         k = math.exp(-TWO_PI * t)
-        frac = snapped_fraction(flow(t, x0))
-        axL.set_title(f"t = {t:g}   (k = {k:.2g})\n{100 * frac:.0f}% within 0.02 of an integer",
-                      fontsize=9.5, color=INK, pad=6)
+        axL.set_title(f"t = {t:g}   (k = {k:.2g})\n{fmt_pct(resolved_fraction(t))} of all starts\n"
+                      f"within {SNAP_TOL:g} of an integer", fontsize=9.5, color=INK, pad=6)
         if j > 0:
             axM.tick_params(labelleft=False)
         axM.set_xlabel("start x", fontsize=8)
@@ -594,11 +590,9 @@ def make_filmstrip(plt, path, tmax, n_marbles, dpi):
 def make_gif(plt, path, tmax, n_marbles, frames, fps, dpi):
     from matplotlib.animation import PillowWriter
 
-    dash = Dashboard(plt, tmax, n_marbles,
-                     interactive=False, figsize=(13.5, 7.6))
+    dash = Dashboard(plt, tmax, n_marbles, interactive=False, figsize=(13.5, 7.6))
     u = np.linspace(0.0, 1.0, frames)
-    # linger on the fast early phase
-    times = tmax * u**1.7
+    times = tmax * u**1.7                                 # linger on the fast early phase
     sequence = [times[0]] * 8 + list(times) + [times[-1]] * 14
     writer = PillowWriter(fps=fps)
     print(f"rendering {len(sequence)} frames ...")
@@ -622,27 +616,17 @@ def main(argv=None):
         description="Visualise discreteness as the late-time limit of the flow dx/dt = -sin(2 pi x).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    ap.add_argument("--filmstrip", action="store_true",
-                    help="save a still filmstrip PNG")
+    ap.add_argument("--filmstrip", action="store_true", help="save a still filmstrip PNG")
     ap.add_argument("--gif", action="store_true", help="save an animated GIF")
-    ap.add_argument("--snapshot", type=float, metavar="T",
-                    help="save one dashboard frame at time T")
-    ap.add_argument("--selftest", action="store_true",
-                    help="verify the maths numerically")
-    ap.add_argument("--all", action="store_true",
-                    help="selftest + filmstrip + snapshot + gif")
-    ap.add_argument("--tmax", type=float, default=3.0,
-                    help="final time (default 3.0)")
-    ap.add_argument("--marbles", type=int, default=150,
-                    help="number of marbles (default 150)")
-    ap.add_argument("--outdir", default=".",
-                    help="output directory (default .)")
-    ap.add_argument("--dpi", type=int, default=110,
-                    help="PNG dpi (default 110)")
-    ap.add_argument("--frames", type=int, default=70,
-                    help="GIF animation frames (default 70)")
-    ap.add_argument("--fps", type=int, default=20,
-                    help="GIF frames per second (default 20)")
+    ap.add_argument("--snapshot", type=float, metavar="T", help="save one dashboard frame at time T")
+    ap.add_argument("--selftest", action="store_true", help="verify the maths numerically")
+    ap.add_argument("--all", action="store_true", help="selftest + filmstrip + snapshot + gif")
+    ap.add_argument("--tmax", type=float, default=3.0, help="final time (default 3.0)")
+    ap.add_argument("--marbles", type=int, default=150, help="number of marbles (default 150)")
+    ap.add_argument("--outdir", default=".", help="output directory (default .)")
+    ap.add_argument("--dpi", type=int, default=110, help="PNG dpi (default 110)")
+    ap.add_argument("--frames", type=int, default=70, help="GIF animation frames (default 70)")
+    ap.add_argument("--fps", type=int, default=20, help="GIF frames per second (default 20)")
     args = ap.parse_args(argv)
 
     if args.tmax <= 0.5 or args.marbles < 10:
@@ -655,38 +639,31 @@ def main(argv=None):
         matplotlib.use("Agg")                              # no window needed
     import matplotlib.pyplot as plt
 
-    plt.rcParams.update(
-        {"font.size": 9, "axes.edgecolor": "#555", "axes.linewidth": 0.8})
+    plt.rcParams.update({"font.size": 9, "axes.edgecolor": "#555", "axes.linewidth": 0.8})
     os.makedirs(args.outdir, exist_ok=True)
-    def out(name): return os.path.join(args.outdir, name)
+    out = lambda name: os.path.join(args.outdir, name)
 
     if args.selftest or args.all:
         if not selftest():
             return 1
     if args.filmstrip or args.all:
-        make_filmstrip(plt, out("discreteness_filmstrip.png"),
-                       args.tmax, args.marbles, args.dpi)
+        make_filmstrip(plt, out("discreteness_filmstrip.png"), args.tmax, args.marbles, args.dpi)
     if args.snapshot is not None or args.all:
         t = args.snapshot if args.snapshot is not None else 0.4
-        make_snapshot(plt, out("discreteness_dashboard.png"),
-                      t, args.tmax, args.marbles, args.dpi)
+        make_snapshot(plt, out("discreteness_dashboard.png"), t, args.tmax, args.marbles, args.dpi)
     if args.gif or args.all:
-        make_gif(plt, out("discreteness.gif"), args.tmax,
-                 args.marbles, args.frames, args.fps, 72)
+        make_gif(plt, out("discreteness.gif"), args.tmax, args.marbles, args.frames, args.fps, 72)
     if saving:
         return 0
 
     # ---- interactive explorer ------------------------------------------- #
     backend = matplotlib.get_backend().lower()
-    headless = backend in {"agg", "pdf", "ps",
-                           "svg", "cairo", "template", "pgf"}
+    headless = backend in {"agg", "pdf", "ps", "svg", "cairo", "template", "pgf"}
     if headless:
         print("No interactive display available (matplotlib backend: %s)." % backend)
         print("Writing a filmstrip and a GIF instead; run with a display for the live explorer.")
-        make_filmstrip(plt, out("discreteness_filmstrip.png"),
-                       args.tmax, args.marbles, args.dpi)
-        make_gif(plt, out("discreteness.gif"), args.tmax,
-                 args.marbles, args.frames, args.fps, 72)
+        make_filmstrip(plt, out("discreteness_filmstrip.png"), args.tmax, args.marbles, args.dpi)
+        make_gif(plt, out("discreteness.gif"), args.tmax, args.marbles, args.frames, args.fps, 72)
         return 0
     Dashboard(plt, args.tmax, args.marbles, interactive=True).run_interactive()
     return 0
