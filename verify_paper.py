@@ -13,7 +13,7 @@ Usage
   python verify_paper.py --dps 80 --samples 400 --seed 7
   python verify_paper.py --no-code          # skip the cross-check against discreteness.py
 
-Requirements: Python >= 3.8, mpmath.  The optional cross-check also needs numpy and a
+Requirements: Python >= 3.9, mpmath.  The optional cross-check also needs numpy and a
 discreteness.py in the same directory.  Exit status is 0 if every check passes, 1 otherwise.
 
 What is checked (paper section / result)
@@ -34,7 +34,9 @@ What is checked (paper section / result)
   3/6   resolved fraction 2 R_{-t}(delta) = (2/pi) arctan(tan(pi delta)/k), checked against
         a root-find of the forward flow, plus its small-k asymptotics
   6     resolution time: the three quoted pairs, the asymptotic estimate, and the exact
-        t* = ln[1/(tan(pi delta) tan(pi eps))] / (2 pi)
+        t* = ln[1/(tan(pi delta) tan(pi eps))] / (2 pi); the leading error (pi/6)(eps^2+delta^2)
+        of the estimate; the unresolved radius eps_c(t) = (1/pi) arctan(k/tan(pi delta)), i.e.
+        t*(eps_c(t), delta) = t and 1 - (resolved fraction) = 2 eps_c(t)
   code  (optional) float64 flow() and resolved_fraction() in discreteness.py vs this reference
 """
 from __future__ import annotations
@@ -263,6 +265,28 @@ def check_resolution_time(rep):
              exact_closed(mpf("0.2"), mpf("0.2")) > 0 and exact_closed(mpf("0.3"), mpf("0.3")) < 0)
 
 
+def check_resolution_links(rep, rng, tol):
+    """Section 6 claims beyond the table: (i) the leading error (pi/6)(eps^2 + delta^2) of the
+    small-scale estimate; (ii) eps_c(t) = (1/pi) arctan(k / tan(pi delta)) is the radius of the
+    still-unresolved neighbourhood of a half-integer, so t*(eps_c(t), delta) = t, and the two ends
+    of each cell give the unresolved fraction 1 - 2 R_{-t}(delta) = 2 eps_c(t)."""
+    m = MaxTracker()
+    for _ in range(25):
+        t, dl = mpf(rng.uniform(0, 3)), mpf(rng.uniform(0.01, 0.45))
+        k = kfac(t)
+        ec = atan(k / tan(pi * dl)) / pi
+        m.update_max("6    t*(eps_c(t), delta) = t", log(1 / (tan(pi * dl) * tan(pi * ec))) / TP - t)
+        m.update_max("6    unresolved fraction = 2 eps_c(t)", 1 - (2 / pi) * atan(tan(pi * dl) / k) - 2 * ec)
+    for name, v in m.items():
+        rep.residual(name, v, tol)
+    worst = mpf(0)                                   # relative deviation from the stated leading term
+    for e, d in ((mpf("1e-3"), mpf("1e-3")), (mpf("1e-4"), mpf("1e-3")), (mpf("1e-5"), mpf("1e-4"))):
+        approx = log(1 / (pi ** 2 * e * d)) / TP
+        exact = log(1 / (tan(pi * d) * tan(pi * e))) / TP
+        worst = max(worst, fabs((approx - exact) / (pi / 6 * (e * e + d * d)) - 1))
+    rep.residual("6    estimate - exact = (pi/6)(eps^2+delta^2), relative", worst, mpf("1e-4"))
+
+
 def check_code(rep, rng):
     """Optional: float64 discreteness.py vs the high-precision reference above."""
     try:
@@ -325,6 +349,7 @@ def main(argv=None):
     check_nonuniform_limit(rep)
     check_resolved_fraction(rep, rng, mpf(10) ** (-30))
     check_resolution_time(rep)
+    check_resolution_links(rep, rng, mpf(10) ** (-30))
     if not args.no_code:
         check_code(rep, rng)
     return 0 if rep.show() else 1
