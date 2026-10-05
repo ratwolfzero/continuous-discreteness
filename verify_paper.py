@@ -293,6 +293,11 @@ def check_code(rep, rng):
         worst = max(float(fabs(mpf(dz.resolved_fraction(t)) - (2 / pi) * atan(tan(pi * mpf("0.02")) / kfac(mpf(t)))))
                     for t in (0.0, 0.1, 0.4, 1.0, 1.5, 3.0))
         rep.residual("code resolved_fraction(): max abs error", mpf(worst), mpf("1e-12"))
+    if hasattr(dz, "resolution_time"):
+        pairs = [(1e-3, 1e-3), (1e-6, 1e-4), (1e-9, 1e-6), (1e-2, 1e-1), (0.2, 0.2)]
+        worst = max(float(fabs(mpf(dz.resolution_time(e, d))
+                               - log(1 / (tan(pi * mpf(d)) * tan(pi * mpf(e)))) / TP)) for e, d in pairs)
+        rep.residual("code resolution_time(): max abs error", mpf(worst), mpf("1e-12"))
 
 
 # --------------------------------------------------------------------------- #

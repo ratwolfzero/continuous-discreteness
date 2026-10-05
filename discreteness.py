@@ -24,8 +24,9 @@ What you see (five linked panels, one shared time t)
   4  Space-time: trajectories funnel into the integers; points started extremely
      close to a half-integer linger, then peel off (logarithmic delay).
   5  Distance to the nearest integer on a log axis: every curve ends up parallel
-     to exp(-2 pi t).  Circles mark the predicted resolution time
-     t* = ln(1 / (pi^2 * eps * delta)) / (2 pi).
+     to exp(-2 pi t).  Circles mark the exact resolution time
+     t* = ln(1 / (tan(pi delta) * tan(pi eps))) / (2 pi),
+     which is ln(1 / (pi^2 eps delta)) / (2 pi) for small eps and delta.
 
 Usage
 -----
@@ -145,6 +146,12 @@ def selftest(verbose=True):
     x_edge = np.array([0.5 * resolved_fraction(te) for te in t_edge])
     results["resolved fraction: edge start lands at tol"] = np.max(np.abs(flow(t_edge, x_edge) - SNAP_TOL))
 
+    # resolution_time(eps, delta): the forward flow from 1/2 - eps must be exactly delta from the
+    # integer at t*.  eps is recomputed from the stored float so input rounding does not enter.
+    x_rt = 0.5 - np.array([1e-2, 1e-4, 1e-6, 1e-8])
+    t_rt = np.array([resolution_time(0.5 - xr, 0.1) for xr in x_rt])
+    results["resolution time: R_t*(1/2 - eps) = delta"] = np.max(np.abs(flow(t_rt, x_rt) - 0.1))
+
     ok = all(v < 1e-6 for v in results.values())
     if verbose:
         print("self-test of the exact solution")
@@ -208,6 +215,18 @@ def resolved_fraction(t, tol=SNAP_TOL):
     finite even if k underflows to 0.)"""
     k = math.exp(-TWO_PI * float(t))
     return (2.0 / math.pi) * math.atan2(math.tan(math.pi * tol), k)
+
+
+def resolution_time(eps, delta):
+    """Exact time at which a start at distance eps from a half-integer first lies within
+    delta of its integer (paper, Section 6):
+
+        t* = ln( 1 / (tan(pi*delta) * tan(pi*eps)) ) / (2 pi).
+
+    Positive iff eps + delta < 1/2 (otherwise the start is already within delta).  For small
+    eps and delta this is ln(1/(pi^2 eps delta))/(2 pi), which overshoots t* by about
+    (pi/6)(eps^2 + delta^2)."""
+    return math.log(1.0 / (math.tan(math.pi * delta) * math.tan(math.pi * eps))) / TWO_PI
 
 
 def fmt_pct(f):
@@ -401,8 +420,8 @@ class DecayPanel:
         ax.axhline(self.DELTA, color=GREY, lw=0.9, ls=":", zorder=1)
         ax.text(tmax * 0.985, self.DELTA * 1.25, f"δ = {self.DELTA}", ha="right", va="bottom", fontsize=8, color="#555")
         first = True
-        for e in self.EPS_EXP:                          # predicted resolution times
-            ts = math.log(1.0 / (math.pi**2 * 10.0 ** (-e) * self.DELTA)) / TWO_PI
+        for e in self.EPS_EXP:                          # exact resolution times (paper, Section 6)
+            ts = resolution_time(10.0 ** (-e), self.DELTA)
             if ts <= tmax:
                 ax.plot([ts], [self.DELTA], "o", ms=7, mfc="none", mec=INK, mew=1.3, zorder=6,
                         label="predicted t*" if first else None)
