@@ -1,5 +1,7 @@
 # Discreteness as the Late-Time Limit of a Smooth Flow
 
+[![DOI](https://zenodo.org/badge/1404830006.svg)](https://doi.org/10.5281/zenodo.23202008)
+
 *An exactly solvable gradient flow whose time-evolution maps are smooth bijections of the real line at every finite time, and whose infinite-time limit is rounding to the nearest integer.*
 
 ---
