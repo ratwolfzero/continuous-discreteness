@@ -1,4 +1,4 @@
-# Exact injection flow for oscillator Ising machines: evaluation and verdict
+# Exact injection flow for oscillator Ising machines: evaluation and verdict (AI-Assisted)
 
 *Source: `oim_exact_flow_study.py` (final run, seed 2024; seeds 1 and 2 and several earlier runs used to check stability). Companion files: `oim_exact_flow_study.png` (figure) and `oim_exact_flow_results.xlsx` (all timing data).*
 
