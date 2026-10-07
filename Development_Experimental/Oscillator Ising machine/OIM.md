@@ -6,7 +6,7 @@
 
 ## 1. The verdict in plain words
 
-Your exact flow is correct, and it is useful in one specific situation.
+The exact flow is correct, and it is useful in one specific situation.
 
 - **How much does the clean picture degrade?** Gently and predictably. Turning on the coupling between oscillators adds an error that grows in direct proportion to the coupling strength, and a closed-form correction cuts that error by about 49 times. Noise does not destroy the picture; it replaces its sharp edges with a blur of known width.
 - **Is there a real computational advantage?** Yes, but only when the injection ("snap to 0 or π") term is much stronger than the coupling. In that regime the exact flow lets a simulation take large time steps where standard methods must take tiny ones. Measured gain: roughly **5 to 10 times fewer coupling evaluations** than the best standard explicit method (10 to 25 times at the strongest setting on other random seeds).
@@ -169,7 +169,7 @@ $$
 Cost is the number of coupling evaluations needed for at least 95% of runs to reproduce the exact reference's final spin pattern ($N=100$ sparse graph, seed 2024). "Best explicit" is the cheaper of Euler and RK4.
 
 | Injection stiffness $r$ | Best explicit | Exact-injection splitting | Splitting advantage |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | 120 (RK4) | 240 | 0.5× (worse) |
 | 3 | 240 | 240 | 1.0× (equal) |
 | 10 | 300 (Euler) | 600 | 0.5× (worse) |
@@ -183,7 +183,7 @@ Other seeds gave 10 to 25× at $r=100$ and 2.5 to 5× at $r=30$. At $r=10$ the r
 Splitting was faster by these ranges across all seven full runs. Timings vary by up to about 2× between runs of identical code, so quote ranges, not single values.
 
 | Compared with | $N=100$ | $N=400$ | $N=1500$ |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | RK4 | 15 to 27× (all sizes) | | |
 | Euler (where Euler is accurate) | 4.2 to 5.9× (all sizes) | | not comparable |
 | BDF (sparse Jacobian) | 5 to 8× | 9 to 16× | **55 to 104×** |
@@ -200,7 +200,7 @@ In the runs I examined, per-spin agreement with the reference was at least 99.9%
 Error in the thermal width of a noisy oscillator:
 
 | $K_s h$ | Euler–Maruyama | Exact-injection splitting |
-|---|---|---|
+| --- | --- | --- |
 | 0.1 | about +10% | about 0% |
 | 0.25 | +32.8% | −2.5% |
 | 0.5 | +88.5% | −11.4% |
@@ -215,7 +215,7 @@ Splitting has about ten times less bias at moderate steps and never blows up. Ho
 ### 6.1 Advantages
 
 | Compared with | What the exact-injection method does better |
-|---|---|
+| --- | --- |
 | **Explicit Euler / RK4** (the usual choice for OIM simulation) | No step-size ceiling from the injection strength. 5 to 10× fewer coupling evaluations at $r\ge30$, and 4 to 27× less wall-clock time. The injection step can never push a phase across a basin boundary, so large steps do not cause spurious spin flips. |
 | **Euler–Maruyama** (noisy simulation) | About ten times less bias in the thermal spread at moderate steps. Stays bounded where Euler–Maruyama diverges ($K_s h\gtrsim0.5$). |
 | **Implicit / stiff solvers** (BDF, LSODA) | Matrix-free: cost per step grows with the number of edges, with no Jacobians and no linear solves. The advantage over sparse BDF grows with graph size (55 to 104× at $N=1500$). |
@@ -224,7 +224,7 @@ Splitting has about ten times less bias at moderate steps and never blows up. Ho
 ### 6.2 Disadvantages
 
 | Issue | Detail |
-|---|---|
+| --- | --- |
 | **Narrow regime** | Real advantage only from about $r\gtrsim30$. Typical OIM schedules ramp $K_s$ to only a few times $K\lambda_{\max}$ ($r\approx1$ to $10$), where RK4 or Euler is equal or better. |
 | **Not exact once coupling is on** | The coupling step is still ordinary numerical integration (second-order Heun). Accuracy in the early part of the ramp is limited by it, not by the exact flow. |
 | **Noise limits step size** | Needs about $K_s h\lesssim0.25$ to keep the thermal width within a few percent. At $K_s h=1$ the error is −36%. |
@@ -245,7 +245,7 @@ You understood correctly: in specific cases the advantage is large. Those cases 
 4. **Low or no noise,** or noise handled with $K_s h\lesssim0.25$.
 
 | Your situation | Recommended approach |
-|---|---|
+| --- | --- |
 | $r\lesssim3$ | RK4 (or an adaptive solver). Exact injection gives no gain. |
 | $3\lesssim r\lesssim30$ | Toss-up; test both. |
 | $r\gtrsim30$, large sparse graph | **Exact-injection splitting.** |
@@ -260,7 +260,7 @@ You understood correctly: in specific cases the advantage is large. Those cases 
 The script tests 16 hypotheses against its own measurements. 13 are confirmed, 2 are not confirmed, and 1 is not comparable. "Confirmed" means the result passed the script's threshold; some thresholds are my own choices.
 
 | Status | Plain-language meaning | Measured |
-|---|---|---|
+| --- | --- | --- |
 | Confirmed | The exact formulas are right (match numerical integration, steps combine exactly, detuned form works). | error about $10^{-12}$ |
 | Confirmed | Ignoring coupling gives an error proportional to $\rho$. | exponent 1.00 |
 | Confirmed | The first-order fix gives an error proportional to $\rho^2$. | exponent 2.00; 49× smaller at $\rho=0.1$ |
@@ -291,7 +291,7 @@ The script tests 16 hypotheses against its own measurements. 13 are confirmed, 2
 
 ## 10. Reproducing the results
 
-```
+```txt
 python oim_exact_flow_study.py            # full run, about 1.5 to 2 minutes
 python oim_exact_flow_study.py --quick    # about 30 seconds
 python oim_exact_flow_study.py --seed 1   # check another seed
