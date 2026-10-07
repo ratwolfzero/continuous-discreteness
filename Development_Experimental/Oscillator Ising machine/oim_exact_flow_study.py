@@ -31,8 +31,8 @@ Experiments (everything printed is measured, nothing is hard-coded)
 
 Usage
 -----
-    python oim_exact_flow_study.py              # full run (about 3-5 min)
-    python oim_exact_flow_study.py --quick      # smaller samples (about 1 min)
+    python oim_exact_flow_study.py              # full run (about 1.5-2 min; timings vary by machine)
+    python oim_exact_flow_study.py --quick      # smaller samples (about 30 s)
     python oim_exact_flow_study.py --no-plot    # skip the figure
     python oim_exact_flow_study.py --seed 7 --outdir results
 
@@ -528,7 +528,8 @@ def experiment3b_wallclock(rng, quick, h_rk4, h_euler, h_split=0.05, r=100):
         base = rec["exact-inj. Strang"][0]
         for name, (dt, frac, full, cutr) in rec.items():
             sp = "1.0x" if name.startswith("exact") else f"{dt / base:.1f}x slower"
-            print(f"    {N:>5d} | {name:<22s} {dt:9.1f} {sp:>8s} {frac:9.4f} {100 * full:9.0f}% {cutr:8.4f}")
+            note = "   <- unfaithful: timing not comparable" if frac < 0.999 else ""
+            print(f"    {N:>5d} | {name:<22s} {dt:9.1f} {sp:>8s} {frac:9.4f} {100 * full:9.0f}% {cutr:8.4f}{note}")
         out.append((N, rec))
     return out
 
@@ -568,7 +569,7 @@ def experiment3c_noise_bias(rng, quick):
 # =========================================================================== #
 def verdict(e0, e1, e2, e3a, e3b, e3c):
     L = []
-    ok = lambda b: "CONFIRMED    " if b else "NOT CONFIRMED"
+    ok = lambda b: "NOT COMPARABLE" if b is None else ("CONFIRMED     " if b else "NOT CONFIRMED ")
     L.append(("Exactness (README flow, group law, detuned closed form)", e0["ok"], f"worst detuned-flow error {e0['worst_detuned']:.1e}"))
     L.append(("Coupling: zeroth-order error is O(rho)", abs(e1["slope0"] - 1) < 0.15, f"fitted exponent {e1['slope0']:.2f}"))
     L.append(("Coupling: closed-form first-order fix is O(rho^2)", abs(e1["slope1"] - 2) < 0.2,
@@ -592,10 +593,20 @@ def verdict(e0, e1, e2, e3a, e3b, e3c):
               + ", ".join(f"r={r:g}:{y:.1f}x" for r, y in ratios if y) + ")"))
     lo = ratios[0]
     L.append(("Benefit also at weak injection (r ~ 1)?", lo[1] is not None and lo[1] > 1.0, f"best-explicit/splitting = {lo[1]:.2f} at r={lo[0]}"))
+    FAITHFUL = 0.999       # per-spin agreement with the reference needed for a timing comparison to be meaningful
     N, rec = e3b[-1]
     base = rec["exact-inj. Strang"][0]
-    L.append((f"Benefit: wall-clock vs Euler / RK4 / BDF at N={N}, r=100", rec["Euler"][0] / base > 2,
-              f"{rec['Euler'][0] / base:.1f}x vs Euler, {rec['RK4'][0] / base:.0f}x vs RK4, {rec['BDF (sparse Jacobian)'][0] / base:.0f}x vs BDF"))
+    L.append((f"Benefit: wall-clock vs RK4 / BDF at N={N}, r=100",
+              rec["RK4"][0] / base > 3 and rec["BDF (sparse Jacobian)"][0] / base > 1,
+              f"{rec['RK4'][0] / base:.0f}x vs RK4, {rec['BDF (sparse Jacobian)'][0] / base:.0f}x vs BDF"))
+    for Ne, rece in e3b:
+        eu = rece["Euler"]
+        b = rece["exact-inj. Strang"][0]
+        if eu[1] >= FAITHFUL:
+            L.append((f"Benefit: wall-clock vs Euler at N={Ne}, r=100", eu[0] / b > 1.0, f"splitting is {eu[0] / b:.1f}x faster"))
+        else:
+            L.append((f"Benefit: wall-clock vs Euler at N={Ne}, r=100", None,
+                      f"Euler (step tuned at N=100) is unfaithful here: per-spin {eu[1]:.3f}, cut/ref {eu[3]:.3f}"))
     for N0, rec0 in e3b:
         if "LSODA (dense Jacobian)" in rec0:
             ls = rec0["LSODA (dense Jacobian)"][0] / rec0["exact-inj. Strang"][0]
@@ -667,7 +678,7 @@ def make_figure(path, e1, e2, e3a, e3b, e3c, lines):
 
     Ns = [n for n, _ in e3b]
     for name, mk in (("exact-inj. Strang", "s"), ("Euler", "v"), ("RK4", "o"), ("BDF (sparse Jacobian)", "d"), ("LSODA (dense Jacobian)", "^")):
-        pts = [(n, rec[name][0]) for n, rec in e3b if name in rec]
+        pts = [(n, rec[name][0]) for n, rec in e3b if name in rec and rec[name][1] >= 0.999]   # unfaithful runs are not timing-comparable
         if pts:
             a[5].loglog(*zip(*pts), mk + "-", label=name)
     a[5].set(xlabel="number of oscillators N", ylabel="ms per run", title="(3b) wall-clock at strong injection (r = 100)")
@@ -680,8 +691,10 @@ def make_figure(path, e1, e2, e3a, e3b, e3c, lines):
     a[6].legend(fontsize=8)
 
     a[7].axis("off")
-    txt = "\n".join(f"{'+' if fl else '-'} {nm.split(':')[0]}: {note}" for nm, fl, note in lines[1:])
-    a[7].text(0, 1, "Measured verdicts\n\n" + txt, va="top", fontsize=7.6, family="monospace", wrap=True)
+    import textwrap
+    txt = "\n".join(textwrap.fill(f"{'~' if fl is None else ('+' if fl else '-')} {nm}: {note}", width=88,
+                                  subsequent_indent="    ") for nm, fl, note in lines[1:])
+    a[7].text(0, 1, "Measured verdicts  (+ confirmed, - not confirmed, ~ not comparable)\n\n" + txt, va="top", fontsize=6.6, family="monospace")
     fig.tight_layout()
     fig.savefig(path, dpi=110)
     print(f"\nfigure saved to {path}")
@@ -690,7 +703,7 @@ def make_figure(path, e1, e2, e3a, e3b, e3c, lines):
 # =========================================================================== #
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--quick", action="store_true", help="smaller samples / fewer sizes (about 1 minute)")
+    ap.add_argument("--quick", action="store_true", help="smaller samples / fewer sizes (about 30 s)")
     ap.add_argument("--no-plot", action="store_true", help="skip the figure")
     ap.add_argument("--seed", type=int, default=2024)
     ap.add_argument("--outdir", default=".")
