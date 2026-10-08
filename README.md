@@ -26,15 +26,17 @@ Integers are its stable fixed points and half-integers its unstable ones. The fl
 | `README.md` | this note: the statements and their proofs |
 | `discreteness.py` | interactive explorer, figures and GIF; double-precision self-test of the mathematics |
 | `verify_paper.py` | 50-digit verification of every statement in this note, plus a cross-check of `discreteness.py` |
+| `prove_paper.py` | exact symbolic proof (computer algebra) of every algebraic identity in this note |
 | `discreteness_dashboard.png` | the figure above, produced by `python discreteness.py --snapshot 0.4` |
 
-Requirements: Python ≥ 3.9. `discreteness.py` needs `numpy` and `matplotlib` (≥ 3.5); `verify_paper.py` needs `mpmath` (and, for its optional cross-check, `numpy` and `discreteness.py` in the same directory).
+Requirements: Python ≥ 3.9. `discreteness.py` needs `numpy` and `matplotlib` (≥ 3.5); `verify_paper.py` needs `mpmath` (and, for its optional cross-check, `numpy` and `discreteness.py` in the same directory); `prove_paper.py` needs `sympy` and `mpmath`.
 
 ```bash
 python discreteness.py                  # interactive explorer (slider + Play)
 python discreteness.py --snapshot 0.4   # regenerate the figure above
 python discreteness.py --selftest       # double-precision self-test
 python verify_paper.py                  # 50-digit verification; exit status 0 = all checks passed
+python prove_paper.py                   # exact symbolic proofs; exit status 0 = all passed
 ```
 
 ---
@@ -244,7 +246,18 @@ $$
 2R_{-t}(\delta) = \frac{2}{\pi}\arctan\!\frac{\tan\pi\delta}{k}, \qquad k = e^{-2\pi t},
 $$
 
-so the unresolved fraction is $\frac{2}{\pi}\arctan\frac{k}{\tan\pi\delta} \approx \frac{2\,e^{-2\pi t}}{\pi^{2}\delta}$ for small $k$ and $\delta$. It decays exponentially but is positive at every finite time.
+so the unresolved fraction is exactly
+
+$$
+1 - 2R_{-t}(\delta) = \frac{2}{\pi}\arctan\frac{k}{\tan\pi\delta}.
+$$
+
+If $k \ll \delta \ll 1$, equivalently $t \gg \frac{1}{2\pi}\ln\frac1\delta$, this is
+$\approx \frac{2\,e^{-2\pi t}}{\pi^{2}\delta}$, with relative error close to
+$\frac13\big[(k/\pi\delta)^{2} + (\pi\delta)^{2}\big]$. Smallness of $k$ and of $\delta$ separately is
+not enough: the approximation requires $k/\tan\pi\delta$ to be small, and for
+$\delta \lesssim k$ it fails completely (the exact fraction then tends to $1$, not to $0$).
+In every case the unresolved fraction decays exponentially in $t$ but is positive at every finite time.
 
 **Result 6 (dissipation).** The potential is a Lyapunov function:
 
@@ -258,10 +271,10 @@ $$
 \tan\!\big(\pi R_t(x)\big) = e^{-2\pi t}\,\tan(\pi x), \qquad \cos(\pi x)\neq 0.
 $$
 
-**Result 8 (monotone approach to the integers).** For non-negative times, the distance to the nearest integer never increases along the flow:
+**Result 8 (monotone approach to the integers).** The distance to the nearest integer never increases along the flow:
 
 $$
-|R_t(x) - n| \le |R_s(x) - n|, \qquad 0 \le s \le t, \quad x \in \left[n-\tfrac12,\; n+\tfrac12\right].
+|R_t(x) - n| \le |R_s(x) - n|, \qquad s \le t \ \text{(real)}, \quad x \in \left[n-\tfrac12,\; n+\tfrac12\right].
 $$
 
 Each closed cell is mapped into itself.
@@ -312,7 +325,7 @@ $$
 \cos^{2}\pi(x-n) = \frac{1+\cos 2\pi x}{2}, \qquad \sin^{2}\pi(x-n) = \frac{1-\cos 2\pi x}{2}.
 $$
 
-On the cell boundaries every point is fixed (the numerator of the arctangent argument vanishes there), so the equation of motion holds trivially, and the derivative formula follows from the closed form and the algebraic core. Positivity of the derivative follows from the positivity of the second denominator. Shift-equivariance follows from the periodicity of sine and cosine. A continuous, strictly increasing map that commutes with integer shifts is onto the real line.
+On the cell boundaries every point is fixed (the numerator of the arctangent argument vanishes there), so the equation of motion holds trivially, and the derivative formula holds there by continuity: both sides of $\partial_xR_t=2k/E$ are continuous on the real line (the left side because the closed form is smooth, the right side because $E>0$), and they agree on every open cell. (Alternatively, differentiate the closed form directly and use the algebraic core of Section 2.4.) Positivity of the derivative follows from the positivity of the second denominator. Shift-equivariance follows from the periodicity of sine and cosine. A continuous, strictly increasing map that commutes with integer shifts is onto the real line.
 
 **Result 3.** At an integer the cosine equals one, so
 
@@ -352,7 +365,7 @@ $$
 R_t(x) = n + \frac{1}{\pi}\arctan\!\big(k\,T\big) \;\longrightarrow\; n.
 $$
 
-For the remark: since $R_t$ is increasing and fixes $n$, $|R_t(x)-n|\le\delta$ exactly when $|x-n|\le R_{-t}(\delta)$ (Result 4), so each unit cell contributes length $2R_{-t}(\delta)$, and the cell form gives $R_{-t}(\delta)=\frac1\pi\arctan(\tan(\pi\delta)/k)$. The unresolved fraction follows from $\arctan a+\arctan(1/a)=\pi/2$, and its asymptotics from $\arctan z\sim z$ and $\tan z\sim z$. For the supremum, $R_t$ is continuous with $R_t(n+\tfrac12)=n+\tfrac12$, so $R_t(x)\to n+\tfrac12$ as $x\uparrow n+\tfrac12$, while $\mathrm{round}(x)=n$ on the open cell; the gap therefore tends to $\tfrac12$.
+For the remark: since $R_t$ is increasing and fixes $n$, $|R_t(x)-n|\le\delta$ exactly when $|x-n|\le R_{-t}(\delta)$ (Result 4), so each unit cell contributes length $2R_{-t}(\delta)$, and the cell form gives $R_{-t}(\delta)=\frac1\pi\arctan(\tan(\pi\delta)/k)$. The unresolved fraction follows from $\arctan a+\arctan(1/a)=\pi/2$, and its asymptotics from $\arctan z\sim z$ applied to $z=k/\tan\pi\delta$ (which requires $z\to0$, i.e. $k/\delta\to0$) together with $\tan z\sim z$. For the supremum, $R_t$ is continuous with $R_t(n+\tfrac12)=n+\tfrac12$, so $R_t(x)\to n+\tfrac12$ as $x\uparrow n+\tfrac12$, while $\mathrm{round}(x)=n$ on the open cell; the gap therefore tends to $\tfrac12$.
 
 **Result 6.** By the chain rule, the derivative of the potential evaluated along the trajectory is
 
@@ -368,7 +381,7 @@ $$
 
 and the tangent is periodic with period one, so the integer drops out.
 
-**Result 8.** The map is increasing and fixes every half-integer, so it maps each closed cell into itself. In the upper half of a cell the sine of the doubled angle is non-negative, so the velocity points towards the integer, and in the lower half it is non-positive, with the same conclusion. The trajectory cannot cross the integer because the integer is a fixed point and the map is monotone. Hence, for non-negative time, a point in the upper half stays between the integer and its starting position, and a point in the lower half stays between its starting position and the integer. The general statement follows from the group law, writing the later time as the earlier time followed by a non-negative increment.
+**Result 8.** The map is increasing and fixes every half-integer, so at every time it maps each closed cell into itself. On the open cell the cell form gives $|R_t(x)-n| = \frac1\pi\arctan(k\,|T|)$ with $T=\tan\pi(x-n)$. This is nondecreasing in $k$, because $\partial_k\arctan(kT)=T/(1+k^{2}T^{2})$ has the sign of $T$. Since $k=e^{-2\pi t}$ decreases with $t$, the distance is nonincreasing in $t$, for all real times. On the cell boundary the distance is constantly $\tfrac12$.
 
 **Result 9.** For non-negative time the contraction factor lies in the unit interval. The second denominator is linear in the cosine with a non-negative coefficient, so it is bounded between its values at the cosine equal to minus one and plus one:
 
@@ -527,4 +540,14 @@ of a half-integer. Two such ends per cell give the unresolved fraction stated in
 
 ## 8. Scope and verification
 
-All identities stated above were cross-checked numerically in 50-digit arithmetic on random positions and times of either sign, using `verify_paper.py` (run `python verify_paper.py`; exit status 0 means every check passed). The checks covered the group law and inverse, the equation of motion, the spatial derivative and the sine formula, the linearizing identity, the slopes at integers and half-integers, the Lyapunov derivative, the Möbius form together with the velocity-addition law, the Poisson-kernel push-forward, the hyperbolic distance, the resolved-fraction formula and the non-uniform limit of Section 3, the exact resolution time of Section 6 together with its small-scale estimate, the leading-order error of that estimate and the unresolved radius $\varepsilon_c(t)$, and, on random samples, the resolution bounds and the monotone approach. For the exact identities the residuals were below $10^{-30}$ (worst observed in the default run about $4\times10^{-39}$); no violations were found in the inequalities; and the exact resolution time agrees with a direct root-find of the flow to better than $10^{-40}$. The script also compares the double-precision map in `discreteness.py` against the same reference (absolute agreement of order $10^{-15}$ or better); the bundled `discreteness.py --selftest` is a smaller double-precision check restricted to non-negative times. These checks support the statements but are not proofs; the derivations in Section 4 are elementary and are the argument. Not addressed here: a literature search beyond the informal one mentioned above, and the choice of which physical or computational setting, if any, this model fits best.
+All identities stated above were cross-checked numerically in 50-digit arithmetic on random positions and times of either sign, using `verify_paper.py` (run `python verify_paper.py`; exit status 0 means every check passed). The checks covered the group law and inverse, the equation of motion, the spatial derivative and the sine formula, the linearizing identity, the slopes at integers and half-integers, the Lyapunov derivative, the Möbius form together with the velocity-addition law, the Poisson-kernel push-forward, the hyperbolic distance, the resolved-fraction formula and the non-uniform limit of Section 3, the exact resolution time of Section 6 together with its small-scale estimate, the leading-order error of that estimate and the unresolved radius $\varepsilon_c(t)$, and, on random samples, the resolution bounds and the monotone approach (the latter for times of either sign, over cells $n=-5,\dots,5$). For the exact identities the residuals were below $10^{-30}$ (worst observed in the default run about $4\times10^{-39}$); no violations were found in the inequalities; and the exact resolution time agrees with a direct root-find of the flow to better than $10^{-40}$. The script also compares the double-precision map in `discreteness.py` against the same reference (absolute agreement of order $10^{-15}$ or better); the bundled `discreteness.py --selftest` is a smaller double-precision check restricted to non-negative times. The numerical checks above support the statements but are not proofs. The algebraic content is
+proved exactly by `prove_paper.py` (SymPy): the positivity and bounds on $D$ and $E$, the algebraic core,
+$\partial_x R_t = 2k/E$ on the whole line including the half-integers, $\partial_t R_t = -\sin(2\pi R_t)$
+with $R_0=\mathrm{id}$, the sine formula, the slopes, the linearizing identity, the Möbius form with the
+multiplier, velocity-addition law and Poisson density, and the algebra of Section 6. Each identity is
+shown to hold for every real position and every positive contraction factor, by polynomial division modulo
+$\sin^2+\cos^2=1$, and a set of deliberately wrong formulas is confirmed to be rejected. What is not
+mechanised are three standard theorems that Section 4 applies directly: Picard–Lindelöf uniqueness,
+the fact that a continuous, strictly increasing map commuting with integer shifts is onto, and the mean
+value theorem. The argument is therefore a hand proof whose algebraic steps are machine-checked in
+computer algebra; it has not been formalised in a proof assistant. Not addressed here: a literature search beyond the informal one mentioned above, and the choice of which physical or computational setting, if any, this model fits best.

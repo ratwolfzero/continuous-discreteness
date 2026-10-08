@@ -27,7 +27,8 @@ What is checked (paper section / result)
   R5    gap to the rounding map stays 1/2 at every finite t (non-uniform limit)
   R6    d/dt V(R_t) = -sin^2(2 pi R_t)
   R7    tan(pi R_t) = e^{-2 pi t} tan(pi x)
-  R8    monotone approach to the integers; closed cells mapped into themselves   (t >= 0)
+  R8    monotone approach to the integers; closed cells mapped into themselves   (t >= 0, and
+        separately for ALL real s <= t of either sign, as Result 8 is now stated)
   R9    e^{-2 pi t}|x-y| <= |R_t(x)-R_t(y)| <= e^{2 pi t}|x-y|                    (t >= 0)
   5     Moebius form (z+r)/(1+rz), r = tanh(pi t); multiplier at +1; velocity addition;
         hyperbolic distance 2 artanh r = 2 pi t; Poisson-kernel push-forward
@@ -204,6 +205,27 @@ def check_inequalities(rep, rng, N):
     rep.count("R9   e^{-2 pi t} <= |dR|/|dx| <= e^{2 pi t}", v9, N)
 
 
+def check_monotone_either_sign(rep, rng, N):
+    """Result 8 as stated in the README: for ALL real s <= t (either sign) the distance to the
+    nearest integer is non-increasing in t, and every closed cell is mapped into itself at every time.
+    Uses its own random stream (see main) so that adding this check leaves the samples of all other
+    checks unchanged.  Cells n = -5..5 are used, not only n = 0."""
+    slack = mpf(10) ** (-(mp.dps - 8))
+    v8 = v8c = 0
+    for _ in range(N):
+        n = rng.randint(-5, 5)
+        x = mpf(n) + mpf(rng.uniform(-0.5, 0.5))
+        s = mpf(rng.uniform(-1.2, 1.2))
+        t = s + mpf(rng.uniform(0, 2.4))
+        ds, dtt = fabs(R_cell(x, s) - n), fabs(R_cell(x, t) - n)
+        if dtt > ds + slack:
+            v8 += 1
+        if ds > mpf(1) / 2 + slack or dtt > mpf(1) / 2 + slack:
+            v8c += 1
+    rep.count("R8   |R_t - n| <= |R_s - n| for ALL real s <= t (either sign)", v8, N)
+    rep.count("R8   closed cell mapped into itself at times of either sign", v8c, N)
+
+
 def check_nonuniform_limit(rep):
     """Result 5 remark: at every finite t there are starts whose distance to round(x) is still ~1/2."""
     worst = mpf(0)
@@ -346,6 +368,7 @@ def main(argv=None):
     check_identities(rep, rng, args.samples, mpf(10) ** (-30))
     check_fixed_points(rep, rng, mpf(10) ** (-30))
     check_inequalities(rep, rng, max(args.samples, 1000))
+    check_monotone_either_sign(rep, random.Random(args.seed + 1000), max(args.samples, 1000))
     check_nonuniform_limit(rep)
     check_resolved_fraction(rep, rng, mpf(10) ** (-30))
     check_resolution_time(rep)
