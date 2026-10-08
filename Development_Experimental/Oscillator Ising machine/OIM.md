@@ -25,7 +25,7 @@ $$
 \dot\varphi_i \;=\; -K\sum_j J_{ij}\,\sin(\varphi_i-\varphi_j)\;-\;K_s(t)\,\sin(2\varphi_i)\;\;[+\;\sigma\,\text{noise}]
 $$
 
-Your README solves the second term on its own, exactly. With $n$ the nearest multiple of $\pi$ to the starting phase and $S$ the accumulated injection strength:
+The README solves the second term on its own, exactly. With $n$ the nearest multiple of $\pi$ to the starting phase and $S$ the accumulated injection strength:
 
 $$
 \varphi(t)\;=\;n\pi+\arctan\!\Big(e^{-2S}\,\tan(\varphi_0-n\pi)\Big),
@@ -78,7 +78,7 @@ $$
 
 At $\rho=0.1$ the correction makes the error about **49 times smaller**, and the fitted exponents were identical on all three seeds. A small fraction of oscillators (about 1% at $\rho=0.4$) end up in the opposite basin from the one the exact flow predicts. I report only their size, because there are too few events to fit a scaling law.
 
-Oscillators very close to the unstable point (within 0.35 rad) were excluded from the error statistics, because the expansion is not uniform there. This is the same non-uniform behaviour your README already describes.
+Oscillators very close to the unstable point (within 0.35 rad) were excluded from the error statistics, because the expansion is not uniform there. This is the same non-uniform behaviour already described in the README.
 
 ### 3.2 A real-world imperfection that costs nothing: frequency mismatch
 
@@ -237,14 +237,14 @@ Splitting has about ten times less bias at moderate steps and never blows up. Ho
 
 ## 7. When is the advantage significant?
 
-You understood correctly: in specific cases the advantage is large. Those cases combine four conditions:
+In specific cases the advantage is large. Those cases combine four conditions:
 
 1. **Strong injection:** $r\gtrsim30$, for example a long final "pinning" or binarization phase.
 2. **Large sparse networks:** where each coupling evaluation is the main cost and Jacobians are expensive.
 3. **A fixed-step explicit baseline:** which is the usual way OIMs are simulated.
 4. **Low or no noise,** or noise handled with $K_s h\lesssim0.25$.
 
-| Your situation | Recommended approach |
+| Situation | Recommended approach |
 | --- | --- |
 | $r\lesssim3$ | RK4 (or an adaptive solver). Exact injection gives no gain. |
 | $3\lesssim r\lesssim30$ | Toss-up; test both. |
