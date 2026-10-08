@@ -38,7 +38,8 @@ What is checked (paper section / result)
         t* = ln[1/(tan(pi delta) tan(pi eps))] / (2 pi); the leading error (pi/6)(eps^2+delta^2)
         of the estimate; the unresolved radius eps_c(t) = (1/pi) arctan(k/tan(pi delta)), i.e.
         t*(eps_c(t), delta) = t and 1 - (resolved fraction) = 2 eps_c(t)
-  code  (optional) float64 flow() and resolved_fraction() in discreteness.py vs this reference
+  code  (optional) float64 flow(), resolved_fraction(), resolution_time() in discreteness.py vs this
+        reference, including a sweep of starts arbitrarily close to a half-integer
 """
 from __future__ import annotations
 
@@ -330,11 +331,45 @@ def check_code(rep, rng):
         # Relative accuracy of the distance to the integer.  Only meaningful in the cell n = 0:
         # flow() returns the absolute position n + d, and float64 cannot hold a distance d below
         # ~1e-16 next to an integer n != 0 (so the absolute error above is the right measure there).
-        # Also skip starts within 1e-3 of a half-integer, where rounding of the float input dominates.
+        # Starts within 1e-3 of a half-integer are left to the dedicated sweep below.  (Input rounding is not
+        # the issue there: the reference uses the exact binary value of the input.  The issue is evaluating
+        # cos(pi y) near y = 1/2, where a naive float64 evaluation cancels catastrophically.)
         if nint(xm) == 0 and d > mpf("1e-300") and fabs(mpf(1) / 2 - fabs(xm)) > mpf("1e-3"):
             rel_err = max(rel_err, float(fabs(mpf(float(g)) - ref) / d))
     rep.residual("code flow(): max abs error vs reference (t in [-1,6])", mpf(abs_err), mpf("1e-12"))
     rep.residual("code flow(): max relative error to the integer (cell n=0)", mpf(rel_err), mpf("1e-10"))
+    # Regression test for starts arbitrarily close to a half-integer (distance 1e-16 ... 1e-1, both sides,
+    # cells n = -2, 0, 1, times from -3 to 6).  There the map is steepest (slope e^{2 pi t}), so any avoidable
+    # rounding in the evaluation is amplified; random sampling above almost never lands here.  The reference
+    # is the global closed form, which (unlike the cell form) is defined at exact half-integers, where the
+    # code must return the start unchanged.
+    abs_hi = rel_hi = mpf(0)
+    for n in (-2, 0, 1):
+        for sgn in (-1, 1):
+            for t in (-3.0, -1.0, 0.5, 1.0, 2.0, 3.0, 4.0, 6.0):
+                xs = [n + sgn * (0.5 - 10 ** (-16 + 15 * j / 59)) for j in range(60)]
+                for x, g in zip(xs, dz.flow(t, np.array(xs))):
+                    ref = R_closed(mpf(x), mpf(t))
+                    e = fabs(mpf(float(g)) - ref)
+                    abs_hi = max(abs_hi, e)
+                    if n == 0 and fabs(ref) > mpf("1e-300"):      # relative accuracy only meaningful in cell 0
+                        rel_hi = max(rel_hi, e / fabs(ref))
+    rep.residual("code flow(): max abs error, starts within 1e-1..1e-16 of a half-integer (-3<=t<=6)", abs_hi, mpf("1e-14"))
+    rep.residual("code flow(): max rel error to the integer, same sweep (cell n=0)", rel_hi, mpf("1e-13"))
+    # Extreme times of either sign (|t| up to 1000 makes e^{+-2 pi t} overflow or underflow in float64): the map
+    # must stay finite, fix every integer and half-integer exactly, and keep every start in its closed cell.
+    # (A naive evaluation returns nan at exact integers once t < -113, from inf * sin(pi y) = inf * 0.)
+    special = np.array([float(m) for m in range(-3, 4)] + [m + 0.5 for m in range(-3, 3)])
+    generic = np.array([-2.7, -1.3, -0.4, 0.1, 0.25, 0.49, 1.2, 2.6])
+    ext_times = (-1000.0, -200.0, -114.0, -113.0, -50.0, 50.0, 200.0, 1000.0)
+    bad = 0
+    for t in ext_times:
+        fixed = dz.flow(t, special)
+        moved = dz.flow(t, generic)
+        bad += int(not np.all(fixed == special))                                   # exact fixed points
+        bad += int(not np.all(np.isfinite(moved)))                                 # finite everywhere
+        bad += int(not np.all(np.abs(moved - np.round(generic)) <= 0.5))           # stays in its closed cell
+    rep.count("code flow(): finite, cell-preserving, exact fixed points, |t| up to 1000", bad, 3 * len(ext_times))
     if hasattr(dz, "resolved_fraction"):
         worst = max(float(fabs(mpf(dz.resolved_fraction(t)) - (2 / pi) * atan(tan(pi * mpf("0.02")) / kfac(mpf(t)))))
                     for t in (0.0, 0.1, 0.4, 1.0, 1.5, 3.0))

@@ -65,7 +65,7 @@ def potential(x):
 
 
 def flow(t, x):
-    """Exact time-t map R_t(x) of dx/dt = -sin(2 pi x).  Broadcasts over t and x.
+    """Exact time-t map R_t(x) of dx/dt = -sin(2 pi x), for every real t.  Broadcasts over t and x.
 
     Cell form with the half-angle written as atan2, which is numerically stable
     for large t.  Exact half-integers are the unstable fixed points: they are
@@ -74,10 +74,20 @@ def flow(t, x):
     """
     t = np.asarray(t, dtype=float)
     x = np.asarray(x, dtype=float)
-    k = np.exp(-TWO_PI * t)                      # contraction factor
+    # Contraction factor k = e^{-2 pi t}, applied as a / b with a = min(k, 1) and b = min(1/k, 1).  For t >= 0
+    # this is exactly k / 1.  For very negative t it avoids k = inf (and inf * sin(pi y) = nan at exact
+    # integers), so the map is finite for every real t; the flow can be run backwards as well as forwards.
+    a = np.exp(-TWO_PI * np.maximum(t, 0.0))
+    b = np.exp(TWO_PI * np.minimum(t, 0.0))
     n = np.round(x)
     y = x - n                                    # offset inside the cell, |y| <= 1/2
-    out = n + np.arctan2(k * np.sin(np.pi * y), np.cos(np.pi * y)) / np.pi
+    # cos(pi y) is evaluated as sin(pi (1/2 - |y|)).  Near |y| = 1/2 the complement 1/2 - |y| is exact in
+    # float64, whereas np.cos(np.pi * y) subtracts nearly equal quantities and loses its relative accuracy;
+    # the map's slope e^{2 pi t} at the half-integers then amplifies that loss at late times (errors up to
+    # ~1e-2 at t = 6 for starts within ~1e-16 of a half-integer).  With the complement the error stays
+    # at the 1e-16 level for every start.
+    cy = np.sin(np.pi * (0.5 - np.abs(y)))
+    out = n + np.arctan2(a * np.sin(np.pi * y), b * cy) / np.pi
     return np.where(np.abs(y) == 0.5, x, out)
 
 
@@ -211,7 +221,8 @@ def resolved_fraction(t, tol=SNAP_TOL):
 
     Reason: R_t is increasing and fixes the integer, so |R_t(x) - n| <= tol exactly when
     |x - n| <= R_{-t}(tol).  Equals 2*tol at t = 0, is < 1 at every finite t, and the
-    unresolved remainder is ~ 2k / (pi^2 * tol) for small k and tol.  (atan2 keeps this
+    unresolved remainder is ~ 2k / (pi^2 * tol) when k << tol << 1 (the approximation needs
+    k / tan(pi*tol) small; k and tol both being small is not enough).  (atan2 keeps this
     finite even if k underflows to 0.)"""
     k = math.exp(-TWO_PI * float(t))
     return (2.0 / math.pi) * math.atan2(math.tan(math.pi * tol), k)
