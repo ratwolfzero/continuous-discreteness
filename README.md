@@ -60,7 +60,7 @@ A point inside the open cell around an integer is drawn to that integer; a point
 
 ## 2. The exact solution
 
-Throughout, $k = e^{-2\pi t}$, $t$ is any real time, and $R_t$ denotes the time-$t$ map.
+Throughout, $k = e^{-2\pi t}$, $t$ is any real time, and $R_t$ denotes the time- $t$ map.
 
 ### 2.1 Linearizing the flow
 
