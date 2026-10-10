@@ -61,7 +61,7 @@ PI = math.pi
 # 0.  The exact injection flow (README) and its relatives                     #
 # =========================================================================== #
 def R_paper(t, x):
-    """README closed form (Sec. 2.1):  R_t(x) = x - atan((1-k) sin 2pi x / D)/pi."""
+    """README closed form (Sec. 2.2):  R_t(x) = x - atan((1-k) sin 2pi x / D)/pi."""
     t = np.asarray(t, float)
     x = np.asarray(x, float)
     k = np.exp(-TWO_PI * t)
@@ -71,7 +71,7 @@ def R_paper(t, x):
 
 
 def R_cell(t, x):
-    """README cell form (Sec. 2.2), written with atan2 (stable for large t)."""
+    """README cell form (Sec. 2.1), written with atan2 (stable for large t)."""
     k = np.exp(-TWO_PI * np.asarray(t, float))
     x = np.asarray(x, float)
     n = np.round(x)
@@ -91,7 +91,7 @@ def inject(phi, S):
 
 
 def dinject(phi, S):
-    """d inject / d phi = k / (cos^2 y + k^2 sin^2 y)   (= 2k/E of README Result 2)."""
+    """d inject / d phi = k / (cos^2 y + k^2 sin^2 y)   (README Result 2; = 2k/E with E of APPENDIX A.1)."""
     k = np.exp(-2.0 * np.asarray(S, float))
     y = phi - np.round(phi / PI) * PI
     return k / (np.cos(y) ** 2 + k ** 2 * np.sin(y) ** 2)
@@ -272,7 +272,8 @@ def experiment1_coupling(rng, quick):
     """Ignore the coupling (zeroth order) vs add the closed-form first-order correction.
 
     Variation of constants:  phi(t) ~ R(t,phi0) + int_0^t R'_{t-s}(R_s(phi0)) F(R_s(phi0)) ds,
-    where F is the coupling force along the zeroth-order trajectories and R' = 2k/E (README).
+    where F is the coupling force along the zeroth-order trajectories and R' = 2k/E (README Result 2;
+    E is defined in APPENDIX A.1).
     """
     print("\n[1] Coupling: error of the exact-injection description vs rho = K*lambda_max/Ks")
     N, M = 80, (16 if quick else 40)
@@ -343,14 +344,14 @@ def committor(x, sigma):
 
 
 def t_star(eps, delta):
-    """README Sec. 6 exact resolution time."""
+    """README Sec. 4 exact resolution time."""
     return np.log(1.0 / (np.tan(PI * delta) * np.tan(PI * eps))) / TWO_PI
 
 
 def experiment2_noise(rng, quick):
     out = {}
     print("\n[2] Noise  (units of the README: a = 1, so the saddle expands as e^{+2 pi t})")
-    print("    Linearising at the half-integer (README Result 3: slope e^{2 pi t}) predicts a blur width s = sigma/sqrt(4 pi).")
+    print("    Linearising at the half-integer (APPENDIX C.1: slope e^{2 pi t}) predicts a blur width s = sigma/sqrt(4 pi).")
 
     # (a) noisy basin boundary
     npt = 8000 if quick else 20000

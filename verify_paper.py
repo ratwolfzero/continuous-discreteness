@@ -2,10 +2,11 @@
 """
 verify_paper.py -- high-precision check of "Discreteness as the late-time limit of a smooth flow"
 
-Every identity, inequality and number stated in the paper is re-checked here in
-arbitrary-precision arithmetic (mpmath, 50 digits by default) on random positions and
-random times of EITHER sign.  The maps are re-implemented from the formulas in the paper,
-independently of discreteness.py, so the two files check each other (see --no-code).
+Every identity, inequality and number stated in the note (README.md) and its appendix
+(APPENDIX.md) is re-checked here in arbitrary-precision arithmetic (mpmath, 50 digits by
+default) on random positions and random times of EITHER sign.  The maps are re-implemented
+from the formulas in the note, independently of discreteness.py, so the two files check each
+other (see --no-code).
 
 Usage
 -----
@@ -16,30 +17,33 @@ Usage
 Requirements: Python >= 3.9, mpmath.  The optional cross-check also needs numpy and a
 discreteness.py in the same directory.  Exit status is 0 if every check passes, 1 otherwise.
 
-What is checked (paper section / result)
-----------------------------------------
-  2.2   cell form == global closed form (either sign of t)
-  2.4   D^2 + ((1-k) sin 2 pi x)^2 = 2E ;  D, E > 0
-  R1    R_0 = id ;  dR/dt = -sin(2 pi R) ;  sin(2 pi R) = 2k sin(2 pi x)/E
-  R2    dR/dx = 2k/E ;  R_t(x+n) = R_t(x) + n
-  R3    slopes e^{-2 pi t} at integers, e^{+2 pi t} at half-integers ; both fixed
-  R4    R_{s+t} = R_s o R_t ;  R_{-t} o R_t = id                         (either sign)
-  R5    gap to the rounding map stays 1/2 at every finite t (non-uniform limit)
-  R6    d/dt V(R_t) = -sin^2(2 pi R_t)
-  R7    tan(pi R_t) = e^{-2 pi t} tan(pi x)
-  R8    monotone approach to the integers; closed cells mapped into themselves   (t >= 0, and
-        separately for ALL real s <= t of either sign, as Result 8 is now stated)
-  R9    e^{-2 pi t}|x-y| <= |R_t(x)-R_t(y)| <= e^{2 pi t}|x-y|                    (t >= 0)
-  5     Moebius form (z+r)/(1+rz), r = tanh(pi t); multiplier at +1; velocity addition;
+What is checked  (each label below is a section of README.md or APPENDIX.md; "Res" = Result)
+--------------------------------------------------------------------------------------------
+  A.1   D, E > 0
+  A.2   D^2 + ((1-k) sin 2 pi x)^2 = 2E
+  A.3   cell form == global closed form (either sign of t)
+  Res1  R_0 = id ;  dR/dt = -sin(2 pi R) ;  tan(pi R_t) = e^{-2 pi t} tan(pi x)
+  B     sin(2 pi R) = 2k sin(2 pi x)/E                              (proof of Result 1, App. B)
+  Res2  dR/dx = 2k/E ;  R_t(x+n) = R_t(x) + n
+  Res3  R_{s+t} = R_s o R_t ;  R_{-t} o R_t = id                    (either sign)
+  C.1   integers and half-integers fixed ; slopes e^{-2 pi t} and e^{+2 pi t}
+  C.2   d/dt V(R_t) = -sin^2(2 pi R_t)
+  C.3   monotone approach to the integers; closed cells mapped into themselves  (t >= 0, and
+        separately for ALL real s <= t of either sign, as C.3 is stated)
+  C.4   e^{-2 pi t}|x-y| <= |R_t(x)-R_t(y)| <= e^{2 pi t}|x-y|                  (t >= 0)
+  D     the gap to the rounding map stays 1/2 at every finite t (the limit of Result 4 is not
+        uniform); resolved fraction 2 R_{-t}(delta) = (2/pi) arctan(tan(pi delta)/k), checked
+        against a root-find of the forward flow, plus its small-k asymptotics
+  E     Moebius form (z+r)/(1+rz), r = tanh(pi t); multiplier at +1; velocity addition;
         hyperbolic distance 2 artanh r = 2 pi t; Poisson-kernel push-forward
-  3/6   resolved fraction 2 R_{-t}(delta) = (2/pi) arctan(tan(pi delta)/k), checked against
-        a root-find of the forward flow, plus its small-k asymptotics
-  6     resolution time: the three quoted pairs, the asymptotic estimate, and the exact
-        t* = ln[1/(tan(pi delta) tan(pi eps))] / (2 pi); the leading error (pi/6)(eps^2+delta^2)
-        of the estimate; the unresolved radius eps_c(t) = (1/pi) arctan(k/tan(pi delta)), i.e.
-        t*(eps_c(t), delta) = t and 1 - (resolved fraction) = 2 eps_c(t)
-  code  (optional) float64 flow(), resolved_fraction(), resolution_time() in discreteness.py vs this
-        reference, including a sweep of starts arbitrarily close to a half-integer
+  4     exact resolution time t* = ln[1/(tan(pi delta) tan(pi eps))] / (2 pi) against a
+        root-find of the flow; t* > 0 iff eps + delta < 1/2
+  F     the three quoted (exact, estimate) pairs of the table, the leading error
+        (pi/6)(eps^2+delta^2) of the small-scale estimate, and the unresolved radius
+        eps_c(t) = (1/pi) arctan(k/tan(pi delta)), i.e. t*(eps_c(t), delta) = t and
+        1 - (resolved fraction) = 2 eps_c(t)
+  code  (optional) float64 flow(), resolved_fraction(), resolution_time() in discreteness.py vs
+        this reference, including a sweep of starts arbitrarily close to a half-integer
 """
 from __future__ import annotations
 
@@ -54,7 +58,7 @@ TP = None  # 2*pi; set in main() once the working precision is known
 
 
 # --------------------------------------------------------------------------- #
-# The maps, written from the formulas in the paper                            #
+# The maps, written from the formulas in the note                             #
 # --------------------------------------------------------------------------- #
 def kfac(t):
     return exp(-TP * t)
@@ -71,13 +75,13 @@ def E_(x, t):
 
 
 def R_closed(x, t):
-    """Section 2.1: x - (1/pi) arctan((1-k) sin(2 pi x) / D)."""
+    """Section 2.2: x - (1/pi) arctan((1-k) sin(2 pi x) / D)."""
     k = kfac(t)
     return x - atan((1 - k) * sin(TP * x) / D_(x, t)) / pi
 
 
 def R_cell(x, t):
-    """Section 2.2: n + (1/pi) arctan(k tan(pi (x-n))), valid off the half-integers."""
+    """Section 2.1: n + (1/pi) arctan(k tan(pi (x-n))), valid off the half-integers."""
     n = nint(x)
     return n + atan(kfac(t) * tan(pi * (x - n))) / pi
 
@@ -141,29 +145,29 @@ def check_identities(rep, rng, N, tol):
         y = R_closed(x, t)
         th = TP * y
 
-        m.update_max("2.2  cell form == closed form (t of either sign)", R_closed(x, t) - R_cell(x, t))
-        m.update_max("2.4  D^2 + ((1-k) sin)^2 = 2E", D_(x, t) ** 2 + ((1 - k) * sin(TP * x)) ** 2 - 2 * E_(x, t))
-        m.update_max("2.4  D and E strictly positive (violation size)",
+        m.update_max("A.3  cell form == closed form (t of either sign)", R_closed(x, t) - R_cell(x, t))
+        m.update_max("A.2  D^2 + ((1-k) sin)^2 = 2E", D_(x, t) ** 2 + ((1 - k) * sin(TP * x)) ** 2 - 2 * E_(x, t))
+        m.update_max("A.1  D and E strictly positive (violation size)",
                      max(mpf(0), -D_(x, t)) + max(mpf(0), -E_(x, t)))
-        m.update_max("R1   R_0 = id", R_closed(x, 0) - x)
-        m.update_max("R1   dR/dt = -sin(2 pi R)", diff(lambda tt: R_closed(x, tt), t) + sin(th))
-        m.update_max("R1   sin(2 pi R) = 2k sin(2 pi x)/E", sin(th) - 2 * k * sin(TP * x) / E_(x, t))
-        m.update_max("R2   dR/dx = 2k/E", diff(lambda xx: R_closed(xx, t), x) - 2 * k / E_(x, t))
-        m.update_max("R2   shift equivariance R(x+2) = R(x)+2", R_closed(x + 2, t) - R_closed(x, t) - 2)
-        m.update_max("R4   group law R_{s+t} = R_s o R_t (either sign)", R_closed(x, s + t) - R_closed(y, s))
-        m.update_max("R4   inverse R_{-t} o R_t = id", R_closed(y, -t) - x)
-        m.update_max("R6   dV/dt = -sin^2(2 pi R)", diff(lambda tt: V(R_closed(x, tt)), t) + sin(th) ** 2)
+        m.update_max("Res1 R_0 = id", R_closed(x, 0) - x)
+        m.update_max("Res1 dR/dt = -sin(2 pi R)", diff(lambda tt: R_closed(x, tt), t) + sin(th))
+        m.update_max("B    sin(2 pi R) = 2k sin(2 pi x)/E", sin(th) - 2 * k * sin(TP * x) / E_(x, t))
+        m.update_max("Res2 dR/dx = 2k/E", diff(lambda xx: R_closed(xx, t), x) - 2 * k / E_(x, t))
+        m.update_max("Res2 shift equivariance R(x+2) = R(x)+2", R_closed(x + 2, t) - R_closed(x, t) - 2)
+        m.update_max("Res3 group law R_{s+t} = R_s o R_t (either sign)", R_closed(x, s + t) - R_closed(y, s))
+        m.update_max("Res3 inverse R_{-t} o R_t = id", R_closed(y, -t) - x)
+        m.update_max("C.2  dV/dt = -sin^2(2 pi R)", diff(lambda tt: V(R_closed(x, tt)), t) + sin(th) ** 2)
         if fabs(cos(pi * x)) > mpf("1e-3"):          # tan has a pole at half-integers
-            m.update_max("R7   tan(pi R) = k tan(pi x)", tan(pi * y) - k * tan(pi * x))
+            m.update_max("Res1 tan(pi R) = k tan(pi x)", tan(pi * y) - k * tan(pi * x))
 
-        # Section 5: geometry
+        # Appendix E: geometry
         z, r, rs = exp(mpc(0, 1) * TP * x), tanh(pi * t), tanh(pi * s)
-        m.update_max("5    Moebius form (z+r)/(1+rz), r = tanh(pi t)",
+        m.update_max("E    Moebius form (z+r)/(1+rz), r = tanh(pi t)",
                      exp(mpc(0, 1) * th) - (z + r) / (1 + r * z))
-        m.update_max("5    multiplier at +1: (1-r)/(1+r) = e^{-2 pi t}", (1 - r) / (1 + r) - k)
-        m.update_max("5    velocity addition for r_{s+t}", tanh(pi * (s + t)) - (rs + r) / (1 + rs * r))
-        m.update_max("5    hyperbolic distance 2 artanh r = 2 pi t", 2 * atanh(r) - TP * t)
-        m.update_max("5    Poisson kernel: E/(2k) = P_r(2 pi R)",
+        m.update_max("E    multiplier at +1: (1-r)/(1+r) = e^{-2 pi t}", (1 - r) / (1 + r) - k)
+        m.update_max("E    velocity addition for r_{s+t}", tanh(pi * (s + t)) - (rs + r) / (1 + rs * r))
+        m.update_max("E    hyperbolic distance 2 artanh r = 2 pi t", 2 * atanh(r) - TP * t)
+        m.update_max("E    Poisson kernel: E/(2k) = P_r(2 pi R)",
                      E_(x, t) / (2 * k) - (1 - r * r) / (1 - 2 * r * cos(th) + r * r))
     for name, v in m.items():
         rep.residual(name, v, tol)
@@ -175,10 +179,10 @@ def check_fixed_points(rep, rng, tol):
         t = mpf(rng.uniform(-1.2, 1.2))
         n = rng.randint(-50, 50)
         h = mpf(n) + mpf(1) / 2
-        m.update_max("R3   integers fixed", R_closed(mpf(n), t) - n)
-        m.update_max("R3   half-integers fixed", R_closed(h, t) - h)
-        m.update_max("R3   slope at integer = e^{-2 pi t}", diff(lambda xx: R_closed(xx, t), mpf(n)) - kfac(t))
-        m.update_max("R3   slope at half-integer = e^{+2 pi t}", diff(lambda xx: R_closed(xx, t), h) - 1 / kfac(t))
+        m.update_max("C.1  integers fixed", R_closed(mpf(n), t) - n)
+        m.update_max("C.1  half-integers fixed", R_closed(h, t) - h)
+        m.update_max("C.1  slope at integer = e^{-2 pi t}", diff(lambda xx: R_closed(xx, t), mpf(n)) - kfac(t))
+        m.update_max("C.1  slope at half-integer = e^{+2 pi t}", diff(lambda xx: R_closed(xx, t), h) - 1 / kfac(t))
     for name, v in m.items():
         rep.residual(name, v, tol)
 
@@ -201,13 +205,13 @@ def check_inequalities(rep, rng, N):
             k = kfac(u)
             if not (k * (1 - slack) <= ratio <= (1 / k) * (1 + slack)):
                 v9 += 1
-    rep.count("R8   |R_t - n| <= |R_s - n| for 0 <= s <= t", v8, N)
-    rep.count("R8   closed cell mapped into itself", v8c, N)
-    rep.count("R9   e^{-2 pi t} <= |dR|/|dx| <= e^{2 pi t}", v9, N)
+    rep.count("C.3  |R_t - n| <= |R_s - n| for 0 <= s <= t", v8, N)
+    rep.count("C.3  closed cell mapped into itself", v8c, N)
+    rep.count("C.4  e^{-2 pi t} <= |dR|/|dx| <= e^{2 pi t}", v9, N)
 
 
 def check_monotone_either_sign(rep, rng, N):
-    """Result 8 as stated in the README: for ALL real s <= t (either sign) the distance to the
+    """Appendix C.3 as stated: for ALL real s <= t (either sign) the distance to the
     nearest integer is non-increasing in t, and every closed cell is mapped into itself at every time.
     Uses its own random stream (see main) so that adding this check leaves the samples of all other
     checks unchanged.  Cells n = -5..5 are used, not only n = 0."""
@@ -223,18 +227,19 @@ def check_monotone_either_sign(rep, rng, N):
             v8 += 1
         if ds > mpf(1) / 2 + slack or dtt > mpf(1) / 2 + slack:
             v8c += 1
-    rep.count("R8   |R_t - n| <= |R_s - n| for ALL real s <= t (either sign)", v8, N)
-    rep.count("R8   closed cell mapped into itself at times of either sign", v8c, N)
+    rep.count("C.3  |R_t - n| <= |R_s - n| for ALL real s <= t (either sign)", v8, N)
+    rep.count("C.3  closed cell mapped into itself at times of either sign", v8c, N)
 
 
 def check_nonuniform_limit(rep):
-    """Result 5 remark: at every finite t there are starts whose distance to round(x) is still ~1/2."""
+    """Appendix D (non-uniform limit of Result 4): at every finite t there are starts whose distance
+    to round(x) is still ~1/2."""
     worst = mpf(0)
     for t in (mpf(1), mpf(3), mpf(6)):
         eps = mpf("1e-40")                           # start 1e-40 below the half-integer 1/2; round(x) = 0
         gap = fabs(R_cell(mpf(1) / 2 - eps, t))
         worst = max(worst, fabs(gap - mpf(1) / 2))
-    rep.residual("R5   gap to rounding is 1/2 at finite t (eps=1e-40)", worst, mpf("1e-10"))
+    rep.residual("D    gap to rounding is 1/2 at finite t (eps=1e-40)", worst, mpf("1e-10"))
 
 
 def check_resolved_fraction(rep, rng, tol):
@@ -248,12 +253,12 @@ def check_resolved_fraction(rep, rng, tol):
         dl = mpf(rng.uniform(0.005, 0.45))
         formula = (2 / pi) * atan(tan(pi * dl) / kfac(t))
         edge = findroot(lambda xx: R_cell(xx, t) - dl, formula / 2, tol=rtol, maxsteps=200)
-        m.update_max("3/6  resolved fraction = 2 x (start landing at delta)", formula - 2 * edge)
-        m.update_max("3/6  resolved fraction = 2 R_{-t}(delta)", formula - 2 * R_cell(dl, -t))
+        m.update_max("D    resolved fraction = 2 x (start landing at delta)", formula - 2 * edge)
+        m.update_max("D    resolved fraction = 2 R_{-t}(delta)", formula - 2 * R_cell(dl, -t))
     for t, dl in ((mpf(4), mpf("0.01")), (mpf(6), mpf("0.001"))):
         k = kfac(t)
         unresolved = 1 - (2 / pi) * atan(tan(pi * dl) / k)
-        asym.update_max("3/6  unresolved ~ 2k/(pi^2 delta): relative error", unresolved / (2 * k / (pi ** 2 * dl)) - 1)
+        asym.update_max("D    unresolved ~ 2k/(pi^2 delta): relative error", unresolved / (2 * k / (pi ** 2 * dl)) - 1)
     for name, v in m.items():
         rep.residual(name, v, tol)
     for name, v in asym.items():
@@ -261,7 +266,7 @@ def check_resolved_fraction(rep, rng, tol):
 
 
 def check_resolution_time(rep):
-    quoted = [  # (eps, delta, exact, approx) exactly as printed in Section 6 (six decimals)
+    quoted = [  # (eps, delta, exact, approx) exactly as printed in Appendix F (six decimals)
         (mpf("1e-3"), mpf("1e-3"), "1.834427", "1.834428"),
         (mpf("1e-6"), mpf("1e-4"), "3.300299", "3.300299"),
         (mpf("1e-9"), mpf("1e-6"), "5.132638", "5.132638"),
@@ -270,8 +275,8 @@ def check_resolution_time(rep):
     approx = lambda e, d: log(1 / (pi ** 2 * e * d)) / TP
     exact_closed = lambda e, d: log(1 / (tan(pi * d) * tan(pi * e))) / TP
 
-    print("Section 6 -- resolution time t*(eps, delta); the last two rows are outside the paper's regime")
-    print(f"  {'eps':>8} {'delta':>8} | {'exact (root-find)':>18} {'exact (closed)':>16} {'paper approx':>14} | {'approx - exact':>14}")
+    print("Section 4 / Appendix F -- resolution time t*(eps, delta); the last two rows are outside the small-scale regime")
+    print(f"  {'eps':>8} {'delta':>8} | {'exact (root-find)':>18} {'exact (closed)':>16} {'small-scale':>14} | {'approx - exact':>14}")
     worst, digits_ok = mpf(0), True
     for e, d, q_exact, q_approx in quoted + extra:
         x0 = mpf(1) / 2 - e
@@ -282,14 +287,14 @@ def check_resolution_time(rep):
         if q_exact is not None:
             digits_ok &= f"{float(te):.6f}" == q_exact and f"{float(ta):.6f}" == q_approx
     print()
-    rep.residual("6    exact t* (closed form) vs root-find", worst, mpf(10) ** (-(mp.dps - 10)))
-    rep.flag("6    the three quoted (exact, approx) pairs, 6 decimals", digits_ok)
-    rep.flag("6    t* > 0 iff delta + eps < 1/2",
+    rep.residual("4    exact t* (closed form) vs root-find", worst, mpf(10) ** (-(mp.dps - 10)))
+    rep.flag("F    the three quoted (exact, approx) pairs, 6 decimals", digits_ok)
+    rep.flag("4    t* > 0 iff delta + eps < 1/2",
              exact_closed(mpf("0.2"), mpf("0.2")) > 0 and exact_closed(mpf("0.3"), mpf("0.3")) < 0)
 
 
 def check_resolution_links(rep, rng, tol):
-    """Section 6 claims beyond the table: (i) the leading error (pi/6)(eps^2 + delta^2) of the
+    """Appendix F claims beyond the table: (i) the leading error (pi/6)(eps^2 + delta^2) of the
     small-scale estimate; (ii) eps_c(t) = (1/pi) arctan(k / tan(pi delta)) is the radius of the
     still-unresolved neighbourhood of a half-integer, so t*(eps_c(t), delta) = t, and the two ends
     of each cell give the unresolved fraction 1 - 2 R_{-t}(delta) = 2 eps_c(t)."""
@@ -298,8 +303,8 @@ def check_resolution_links(rep, rng, tol):
         t, dl = mpf(rng.uniform(0, 3)), mpf(rng.uniform(0.01, 0.45))
         k = kfac(t)
         ec = atan(k / tan(pi * dl)) / pi
-        m.update_max("6    t*(eps_c(t), delta) = t", log(1 / (tan(pi * dl) * tan(pi * ec))) / TP - t)
-        m.update_max("6    unresolved fraction = 2 eps_c(t)", 1 - (2 / pi) * atan(tan(pi * dl) / k) - 2 * ec)
+        m.update_max("F    t*(eps_c(t), delta) = t", log(1 / (tan(pi * dl) * tan(pi * ec))) / TP - t)
+        m.update_max("F    unresolved fraction = 2 eps_c(t)", 1 - (2 / pi) * atan(tan(pi * dl) / k) - 2 * ec)
     for name, v in m.items():
         rep.residual(name, v, tol)
     worst = mpf(0)                                   # relative deviation from the stated leading term
@@ -307,7 +312,7 @@ def check_resolution_links(rep, rng, tol):
         approx = log(1 / (pi ** 2 * e * d)) / TP
         exact = log(1 / (tan(pi * d) * tan(pi * e))) / TP
         worst = max(worst, fabs((approx - exact) / (pi / 6 * (e * e + d * d)) - 1))
-    rep.residual("6    estimate - exact = (pi/6)(eps^2+delta^2), relative", worst, mpf("1e-4"))
+    rep.residual("F    estimate - exact = (pi/6)(eps^2+delta^2), relative", worst, mpf("1e-4"))
 
 
 def check_code(rep, rng):
@@ -384,7 +389,7 @@ def check_code(rep, rng):
 # --------------------------------------------------------------------------- #
 def main(argv=None):
     global TP
-    ap = argparse.ArgumentParser(description="High-precision verification of the paper's results.")
+    ap = argparse.ArgumentParser(description="High-precision verification of the results of README.md / APPENDIX.md.")
     ap.add_argument("--dps", type=int, default=50, help="working precision in decimal digits (default 50)")
     ap.add_argument("--samples", type=int, default=150, help="random samples per check (default 150)")
     ap.add_argument("--seed", type=int, default=1, help="random seed (default 1)")

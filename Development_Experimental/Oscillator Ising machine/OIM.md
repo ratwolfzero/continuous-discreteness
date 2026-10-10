@@ -78,7 +78,7 @@ $$
 
 At $\rho=0.1$ the correction makes the error about **49 times smaller**, and the fitted exponents were identical on all three seeds. A small fraction of oscillators (about 1% at $\rho=0.4$) end up in the opposite basin from the one the exact flow predicts. I report only their size, because there are too few events to fit a scaling law.
 
-Oscillators very close to the unstable point (within 0.35 rad) were excluded from the error statistics, because the expansion is not uniform there. This is the same non-uniform behaviour already described in the README.
+Oscillators very close to the unstable point (within 0.35 rad) were excluded from the error statistics, because the expansion is not uniform there. This is the same non-uniform behaviour already described in the README (Result 4) and quantified in `APPENDIX.md`, section D.
 
 ### 3.2 A real-world imperfection that costs nothing: frequency mismatch
 
@@ -103,7 +103,7 @@ $$
 
 Noise does not break the picture. It swaps sharp features for blurs of known size.
 
-**The basin boundary becomes a smooth S-curve.** The width of the blur follows from the README's saddle growth rate $e^{2\pi a t}$:
+**The basin boundary becomes a smooth S-curve.** The width of the blur follows from the README's saddle growth rate $e^{2\pi a t}$ (the slope at the half-integers, `APPENDIX.md` section C.1):
 
 $$
 s=\frac{\sigma}{\sqrt{4\pi a}}
@@ -123,9 +123,9 @@ $$
 p(x)\;\propto\;\exp\!\Big(\frac{a}{\pi\sigma^{2}}\cos 2\pi x\Big)
 $$
 
-The simulated late-time value matched this floor ($z=-1.60$). In the crossover region the noise-free README formula underestimates the unresolved fraction by up to about 30%.
+The simulated late-time value matched this floor ($z=-1.60$). In the crossover region the noise-free formula (`APPENDIX.md`, section D) underestimates the unresolved fraction by up to about 30%.
 
-**Waiting time is capped.** Without noise, the time to resolve a phase that starts a distance $\varepsilon$ from the unstable point grows without limit as $\varepsilon\to0$:
+**Waiting time is capped.** Without noise (README, Section 4), the time to resolve a phase that starts a distance $\varepsilon$ from the unstable point grows without limit as $\varepsilon\to0$:
 
 $$
 t^{*}(\varepsilon,\delta)=\frac{1}{2\pi a}\,\ln\frac{1}{\tan(\pi\delta)\,\tan(\pi\varepsilon)}

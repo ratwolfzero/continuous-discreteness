@@ -15,6 +15,9 @@ At every finite time R_t is a smooth, strictly increasing bijection of the line
 (and R_{s+t} = R_s o R_t).  As t -> infinity it becomes "round to the nearest
 integer".  Discreteness is the late-time limit of a perfectly smooth process.
 
+This file accompanies README.md (the note) and APPENDIX.md (proofs and details); the labels
+printed by --selftest ("Res1", "A.3", "C.1", ...) are sections of those two files.
+
 What you see (five linked panels, one shared time t)
 ----------------------------------------------------
   1  Marbles on the potential V(x): they roll downhill into the integer wells.
@@ -66,6 +69,7 @@ def potential(x):
 
 def flow(t, x):
     """Exact time-t map R_t(x) of dx/dt = -sin(2 pi x), for every real t.  Broadcasts over t and x.
+    (README Section 2.1.)
 
     Cell form with the half-angle written as atan2, which is numerically stable
     for large t.  Exact half-integers are the unstable fixed points: they are
@@ -92,7 +96,7 @@ def flow(t, x):
 
 
 def flow_closed_form(t, x):
-    """The global closed form  x - arctan((1-k) sin 2pi x / D) / pi  (for checks)."""
+    """The global closed form  x - arctan((1-k) sin 2pi x / D) / pi  (README Section 2.2; for checks)."""
     t = np.asarray(t, dtype=float)
     x = np.asarray(x, dtype=float)
     k = np.exp(-TWO_PI * t)
@@ -124,13 +128,13 @@ def selftest(verbose=True):
     s = rng.uniform(0.0, 1.5, N)
 
     results = {}
-    results["cell form  vs  global closed form"] = np.max(np.abs(flow(t, x) - flow_closed_form(t, x)))
-    results["flow  vs  RK4 integration of the ODE"] = np.max(np.abs(flow(t, x) - _rk4(x, t)))
-    results["group law  R_{s+t} = R_s o R_t"] = np.max(np.abs(flow(s + t, x) - flow(s, flow(t, x))))
+    results["A.3   cell form  vs  global closed form"] = np.max(np.abs(flow(t, x) - flow_closed_form(t, x)))
+    results["Res1  flow  vs  RK4 integration of the ODE"] = np.max(np.abs(flow(t, x) - _rk4(x, t)))
+    results["Res3  group law  R_{s+t} = R_s o R_t"] = np.max(np.abs(flow(s + t, x) - flow(s, flow(t, x))))
 
     z = np.exp(1j * TWO_PI * x)
     r = np.tanh(np.pi * t)
-    results["Moebius form  (z+r)/(1+rz)"] = np.max(np.abs(np.exp(1j * TWO_PI * flow(t, x)) - (z + r) / (1 + r * z)))
+    results["E     Moebius form  (z+r)/(1+rz)"] = np.max(np.abs(np.exp(1j * TWO_PI * flow(t, x)) - (z + r) / (1 + r * z)))
 
     # slopes by central differences; kept to moderate t where the map is not yet a near-step
     h = 1e-6
@@ -138,37 +142,37 @@ def selftest(verbose=True):
     k = np.exp(-TWO_PI * tm)
     E = (1 + np.cos(TWO_PI * x)) + k**2 * (1 - np.cos(TWO_PI * x))
     slope_fd = (flow(tm, x + h) - flow(tm, x - h)) / (2 * h)
-    results["slope  dR/dx = 2k/E  (relative)"] = np.max(np.abs(slope_fd / (2 * k / E) - 1))
+    results["Res2  slope  dR/dx = 2k/E  (relative)"] = np.max(np.abs(slope_fd / (2 * k / E) - 1))
 
     n = np.arange(-3, 4, dtype=float)
     tt = 0.7
     sl_int = (flow(tt, n + h) - flow(tt, n - h)) / (2 * h)
     sl_half = (flow(tt, n + 0.5 + h) - flow(tt, n + 0.5 - h)) / (2 * h)
-    results["slope at integers  = e^{-2 pi t}"] = np.max(np.abs(sl_int - math.exp(-TWO_PI * tt)))
-    results["slope at half-integers = e^{+2 pi t}"] = np.max(np.abs(sl_half / math.exp(TWO_PI * tt) - 1))
+    results["C.1   slope at integers  = e^{-2 pi t}"] = np.max(np.abs(sl_int - math.exp(-TWO_PI * tt)))
+    results["C.1   slope at half-integers = e^{+2 pi t}"] = np.max(np.abs(sl_half / math.exp(TWO_PI * tt) - 1))
 
     xs = np.sort(rng.uniform(-2, 2, 4000))
-    results["monotone (min increment, want > 0)"] = -min(0.0, np.min(np.diff(flow(1.3, xs))))
+    results["Res2  monotone (min increment, want > 0)"] = -min(0.0, np.min(np.diff(flow(1.3, xs))))
 
     # resolved_fraction(t) = 2 x_edge, where x_edge is the start that lands exactly at SNAP_TOL;
     # check that by pushing x_edge forward with the flow (independent of the arctan formula)
     t_edge = np.array([0.0, 0.1, 0.4, 1.0, 1.5, 3.0])
     x_edge = np.array([0.5 * resolved_fraction(te) for te in t_edge])
-    results["resolved fraction: edge start lands at tol"] = np.max(np.abs(flow(t_edge, x_edge) - SNAP_TOL))
+    results["D     resolved fraction: edge start lands at tol"] = np.max(np.abs(flow(t_edge, x_edge) - SNAP_TOL))
 
     # resolution_time(eps, delta): the forward flow from 1/2 - eps must be exactly delta from the
     # integer at t*.  eps is recomputed from the stored float so input rounding does not enter.
     x_rt = 0.5 - np.array([1e-2, 1e-4, 1e-6, 1e-8])
     t_rt = np.array([resolution_time(0.5 - xr, 0.1) for xr in x_rt])
-    results["resolution time: R_t*(1/2 - eps) = delta"] = np.max(np.abs(flow(t_rt, x_rt) - 0.1))
+    results["4     resolution time: R_t*(1/2 - eps) = delta"] = np.max(np.abs(flow(t_rt, x_rt) - 0.1))
 
     ok = all(v < 1e-6 for v in results.values())
     if verbose:
         print("self-test of the exact solution")
-        print("-" * 58)
+        print("-" * 66)
         for name, v in results.items():
-            print(f"  {name:<42s} {v:9.2e}")
-        print("-" * 58)
+            print(f"  {name:<50s} {v:9.2e}")
+        print("-" * 66)
         print("  PASS" if ok else "  FAIL")
     return ok
 
@@ -215,7 +219,7 @@ def snapped_fraction(xt, tol=SNAP_TOL):
 
 def resolved_fraction(t, tol=SNAP_TOL):
     """Exact fraction of a uniformly distributed start (over any whole number of cells)
-    that lies within tol of an integer at time t:
+    that lies within tol of an integer at time t (APPENDIX.md, Appendix D):
 
         2 * R_{-t}(tol)  =  (2/pi) * arctan( tan(pi*tol) / k ),      k = exp(-2 pi t).
 
@@ -230,13 +234,13 @@ def resolved_fraction(t, tol=SNAP_TOL):
 
 def resolution_time(eps, delta):
     """Exact time at which a start at distance eps from a half-integer first lies within
-    delta of its integer (paper, Section 6):
+    delta of its integer (note, Section 4):
 
         t* = ln( 1 / (tan(pi*delta) * tan(pi*eps)) ) / (2 pi).
 
     Positive iff eps + delta < 1/2 (otherwise the start is already within delta).  For small
     eps and delta this is ln(1/(pi^2 eps delta))/(2 pi), which overshoots t* by about
-    (pi/6)(eps^2 + delta^2)."""
+    (pi/6)(eps^2 + delta^2)  (Appendix F)."""
     return math.log(1.0 / (math.tan(math.pi * delta) * math.tan(math.pi * eps))) / TWO_PI
 
 
@@ -431,7 +435,7 @@ class DecayPanel:
         ax.axhline(self.DELTA, color=GREY, lw=0.9, ls=":", zorder=1)
         ax.text(tmax * 0.985, self.DELTA * 1.25, f"δ = {self.DELTA}", ha="right", va="bottom", fontsize=8, color="#555")
         first = True
-        for e in self.EPS_EXP:                          # exact resolution times (paper, Section 6)
+        for e in self.EPS_EXP:                          # exact resolution times (note, Section 4)
             ts = resolution_time(10.0 ** (-e), self.DELTA)
             if ts <= tmax:
                 ax.plot([ts], [self.DELTA], "o", ms=7, mfc="none", mec=INK, mew=1.3, zorder=6,
