@@ -54,7 +54,7 @@ $$
 
 Its fixed points are the integers and the half-integers. The linearization of the vector field there is $-2\pi\cos(2\pi x)$, which equals $-2\pi$ at the integers (stable) and $+2\pi$ at the half-integers (unstable).
 
-A point inside the open cell around an integer is drawn to that integer; a point exactly on a half-integer stays there. The time-$t$ map of the flow is the object of interest. It is invertible for every finite time, because the flow can be run backwards. Discreteness appears only in the limit, where the map stops being injective.
+A point inside the open cell around an integer is drawn to that integer; a point exactly on a half-integer stays there. The time- $t$ map of the flow is the object of interest. It is invertible for every finite time, because the flow can be run backwards. Discreteness appears only in the limit, where the map stops being injective.
 
 ---
 
