@@ -2,7 +2,7 @@
 
 This appendix accompanies the main note, [README.md](README.md). It contains the proofs of Results 1–4, the properties that the main line of argument does not need, the geometric picture, details on the resolution time, related work, and a precise account of what has and has not been verified.
 
-Notation is that of the note: $k = e^{-2\pi t}$, $R_t$ is the time-$t$ map of $\dot x = -\sin 2\pi x$, $n$ is an integer, and $D$ is the denominator of Section 2.2. Positions and times are real unless stated otherwise.
+Notation is that of the note: $k = e^{-2\pi t}$, $R_t$ is the time- $t$ map of $\dot x = -\sin 2\pi x$, $n$ is an integer, and $D$ is the denominator of Section 2.2. Positions and times are real unless stated otherwise.
 
 ## Contents
 
