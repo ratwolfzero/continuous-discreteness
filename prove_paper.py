@@ -53,14 +53,16 @@ P = sp.symbols("P", positive=True)          # stands for pi
 k = sp.symbols("k", positive=True)          # contraction factor e^{-2 pi t}
 c, s = sp.symbols("c s", real=True)         # cos 2 pi x, sin 2 pi x
 T = sp.symbols("T", real=True)              # tan pi (x - n)
-tau = sp.symbols("tau", real=True)          # rational parametrisation of the circle
+# rational parametrisation of the circle
+tau = sp.symbols("tau", real=True)
 
 CIRCLE = s**2 + c**2 - 1
 PARAM = {c: (1 - tau**2) / (1 + tau**2), s: 2 * tau / (1 + tau**2)}
 
 D = (1 + c) + k * (1 - c)
 E = (1 + c) + k**2 * (1 - c)
-w = (1 - k) * s / D                        # argument of the arctangent in the closed form
+# argument of the arctangent in the closed form
+w = (1 - k) * s / D
 # R_t(x) = x - atan(w)/P   (P = pi)
 
 
@@ -97,7 +99,8 @@ def check(label, ok):
 
 def identity(label, expr):
     a, b = zero_on_circle(expr), zero_param(expr)
-    check(label + ("" if a == b else "  [DECISION PROCEDURES DISAGREE]"), a and b)
+    check(
+        label + ("" if a == b else "  [DECISION PROCEDURES DISAGREE]"), a and b)
 
 
 # derived trigonometric quantities of the transformed angle 2 pi R = 2 pi x - 2 atan(w)
@@ -110,8 +113,10 @@ cosR = c * cos2atan + s * sin2atan          # cos(2 pi R)
 # 0. The two standard trig facts used to expand sin/cos of (2 pi x - 2 atan w)
 # ==============================================================================================
 ww, th = sp.symbols("ww theta", real=True)
-check("0  sin(2 atan w) = 2w/(1+w^2)", sp.simplify(sp.sin(2 * sp.atan(ww)).expand(trig=True) - 2 * ww / (1 + ww**2)) == 0)
-check("0  cos(2 atan w) = (1-w^2)/(1+w^2)", sp.simplify(sp.cos(2 * sp.atan(ww)).expand(trig=True) - (1 - ww**2) / (1 + ww**2)) == 0)
+check("0  sin(2 atan w) = 2w/(1+w^2)", sp.simplify(sp.sin(2 *
+      sp.atan(ww)).expand(trig=True) - 2 * ww / (1 + ww**2)) == 0)
+check("0  cos(2 atan w) = (1-w^2)/(1+w^2)", sp.simplify(sp.cos(2 *
+      sp.atan(ww)).expand(trig=True) - (1 - ww**2) / (1 + ww**2)) == 0)
 check("0  tan(y) = sin(2y)/(1+cos(2y))  (half-angle)",
       sp.simplify((sp.sin(2 * th) / (1 + sp.cos(2 * th))) - sp.tan(th)) == 0)
 check("0  e^{-2i atan w} = (1-iw)/(1+iw)",
@@ -120,9 +125,11 @@ check("0  e^{-2i atan w} = (1-iw)/(1+iw)",
 # ==============================================================================================
 # A.1  positivity and bounds
 # ==============================================================================================
-check("A.1 D, E are affine in c", sp.diff(D, c, 2) == 0 and sp.diff(E, c, 2) == 0)
+check("A.1 D, E are affine in c", sp.diff(
+    D, c, 2) == 0 and sp.diff(E, c, 2) == 0)
 check("A.1 endpoints: D(c=-1)=2k, D(c=1)=2, E(c=-1)=2k^2, E(c=1)=2",
-      sp.simplify(D.subs(c, -1) - 2 * k) == 0 and sp.simplify(D.subs(c, 1) - 2) == 0
+      sp.simplify(D.subs(c, -1) - 2 *
+                  k) == 0 and sp.simplify(D.subs(c, 1) - 2) == 0
       and sp.simplify(E.subs(c, -1) - 2 * k**2) == 0 and sp.simplify(E.subs(c, 1) - 2) == 0)
 #  affine on [-1,1]  =>  min at an endpoint  =>  D >= 2 min(1,k) > 0 and E >= 2 min(1,k^2) > 0   (k > 0 arbitrary)
 check("A.1 E - 2k^2 = (1-k^2)(1+c)   and   2 - E = (1-k^2)(1-c)   (=> 2k^2 <= E <= 2 for k <= 1; used in C.4)",
@@ -144,7 +151,8 @@ check("A.3 sin 2pi x = 2T/(1+T^2), 1+cos = 2/(1+T^2), 1-cos = 2T^2/(1+T^2) (doub
       sp.simplify(sp.sin(2 * th) - 2 * sp.tan(th) / (1 + sp.tan(th) ** 2)) == 0
       and sp.simplify(1 + sp.cos(2 * th) - 2 / (1 + sp.tan(th) ** 2)) == 0
       and sp.simplify(1 - sp.cos(2 * th) - 2 * sp.tan(th) ** 2 / (1 + sp.tan(th) ** 2)) == 0)
-check("A.3 q := (1-k) sin/D = (1-k)T/(1+kT^2)", sp.cancel((1 - k) * sT / DT - q) == 0)
+check("A.3 q := (1-k) sin/D = (1-k)T/(1+kT^2)",
+      sp.cancel((1 - k) * sT / DT - q) == 0)
 check("A.3 (T-q)/(1+qT) = kT", sp.cancel((T - q) / (1 + q * T) - k * T) == 0)
 check("A.3 D = 2(1+kT^2)/(1+T^2),  E = 2(1+k^2T^2)/(1+T^2)",
       sp.cancel(DT - 2 * (1 + k * T**2) / (1 + T**2)) == 0 and sp.cancel(ET - 2 * (1 + k**2 * T**2) / (1 + T**2)) == 0)
@@ -158,12 +166,15 @@ identity("B  dR/dx = 2k/E   (Result 2; closed form, every x incl. half-integers)
 identity("B  sin(2 pi R) = 2k sin(2 pi x)/E", sinR - 2 * k * s / E)
 identity("B  dR/dt = -sin(2 pi R)   (Result 1)", dRdt + sinR)
 check("B  R_0 = id  (Result 1; k=1 gives w=0)", sp.simplify(w.subs(k, 1)) == 0)
-identity("B  sin^2 + cos^2 = 1 for the transformed angle (consistency)", sinR**2 + cosR**2 - 1)
+identity("B  sin^2 + cos^2 = 1 for the transformed angle (consistency)",
+         sinR**2 + cosR**2 - 1)
 
 # C.2 : chain rule  d/dt V(R) = V'(R) dR/dt  with V' = sin(2 pi y)
 y = sp.symbols("y", real=True)
-check("C.2 V(y) = -cos(2 P y)/(2 P)  =>  V'(y) = sin(2 P y)", sp.simplify(sp.diff(-sp.cos(2 * P * y) / (2 * P), y) - sp.sin(2 * P * y)) == 0)
-identity("C.2 d/dt V(R) = sin(2 pi R) dR/dt = -sin^2(2 pi R)", sinR * dRdt + sinR**2)
+check("C.2 V(y) = -cos(2 P y)/(2 P)  =>  V'(y) = sin(2 P y)",
+      sp.simplify(sp.diff(-sp.cos(2 * P * y) / (2 * P), y) - sp.sin(2 * P * y)) == 0)
+identity("C.2 d/dt V(R) = sin(2 pi R) dR/dt = -sin^2(2 pi R)",
+         sinR * dRdt + sinR**2)
 
 # cross-check of B with sympy.diff on the genuine trigonometric expression (no hand-made chain rule)
 xx, tt = sp.symbols("xx tt", real=True)
@@ -173,7 +184,8 @@ Rg = xx - sp.atan((1 - Kt) * sp.sin(2 * sp.pi * xx) / Dd) / sp.pi
 back = {sp.sin(2 * sp.pi * xx): s, sp.cos(2 * sp.pi * xx): c, sp.exp(-2 * sp.pi * tt): k}
 gx = sp.diff(Rg, xx).subs(back).subs(sp.pi, P)
 gt = sp.diff(Rg, tt).subs(back).subs(sp.pi, P)
-check("B' sympy.diff of the trig closed form: no x,t left after substitution", not (gx.free_symbols & {xx, tt}) and not (gt.free_symbols & {xx, tt}))
+check("B' sympy.diff of the trig closed form: no x,t left after substitution",
+      not (gx.free_symbols & {xx, tt}) and not (gt.free_symbols & {xx, tt}))
 identity("B' sympy.diff:  dR/dx = 2k/E", gx - 2 * k / E)
 identity("B' sympy.diff:  dR/dt = -2 k s ... = -sin(2 pi R)", gt + 2 * k * s / E)
 
@@ -187,17 +199,22 @@ check("C.1 both are fixed: w = 0 where s = 0", sp.simplify(w.subs(s, 0)) == 0)
 # ==============================================================================================
 # Result 1 (linearizing form)
 # ==============================================================================================
-identity("Res1 1 + cos(2 pi R) = 2(1+c)/E   (so cos(pi R) = 0 iff cos(pi x) = 0)", 1 + cosR - 2 * (1 + c) / E)
-identity("Res1 tan(pi R) = k tan(pi x):  sin(2 pi R)(1+c) = k s (1+cos 2 pi R)", sinR * (1 + c) - k * s * (1 + cosR))
+identity("Res1 1 + cos(2 pi R) = 2(1+c)/E   (so cos(pi R) = 0 iff cos(pi x) = 0)",
+         1 + cosR - 2 * (1 + c) / E)
+identity("Res1 tan(pi R) = k tan(pi x):  sin(2 pi R)(1+c) = k s (1+cos 2 pi R)",
+         sinR * (1 + c) - k * s * (1 + cosR))
 
 # ==============================================================================================
 # A.3  The cell form solves the same IVP as the closed form  (the branch-free argument of Appendix A.3)
 # ==============================================================================================
 Cell = sp.atan(k * T) / P                    # R - n, as a function of (T, k)
 dCdt = sp.diff(Cell, k) * (-2 * P * k)
-sinC = 2 * k * T / (1 + k**2 * T**2)         # sin(2 pi (R-n)) = sin(2 atan(kT))
-check("A.3 sin(2 atan(kT)) = 2kT/(1+k^2T^2)", sp.simplify(sp.sin(2 * sp.atan(k * T)).expand(trig=True) - sinC) == 0)
-check("A.3 d/dt [n + atan(kT)/pi] = -sin(2 pi R)  (cell form solves the ODE)", sp.simplify(dCdt + sinC) == 0)
+# sin(2 pi (R-n)) = sin(2 atan(kT))
+sinC = 2 * k * T / (1 + k**2 * T**2)
+check("A.3 sin(2 atan(kT)) = 2kT/(1+k^2T^2)",
+      sp.simplify(sp.sin(2 * sp.atan(k * T)).expand(trig=True) - sinC) == 0)
+check("A.3 d/dt [n + atan(kT)/pi] = -sin(2 pi R)  (cell form solves the ODE)",
+      sp.simplify(dCdt + sinC) == 0)
 check("A.3 d/dx cell form = k(1+T^2)/(1+k^2T^2) = 2k/E  (dT/dx = pi(1+T^2))",
       sp.cancel(sp.diff(Cell, T) * P * (1 + T**2) - 2 * k / ET) == 0)
 check("A.3 cell form at t=0 is x:  d/du[atan(tan u) - u] = 0 on (-pi/2, pi/2) and = 0 at u = 0",
@@ -223,20 +240,26 @@ check("E  r = tanh(pi t)  <=>  (1-k)/(1+k) with k = e^{-2 pi t}",
                   - (1 - sp.exp(-2 * sp.pi * sp.Symbol("t", real=True))) / (1 + sp.exp(-2 * sp.pi * sp.Symbol("t", real=True)))) == 0)
 cz, sz = (z + 1 / z) / 2, (z - 1 / z) / (2 * sp.I)
 wz = ((1 - k) * sz / ((1 + cz) + k * (1 - cz)))
-lhs = z * (1 - sp.I * wz) / (1 + sp.I * wz)     # e^{2 pi i R} = z e^{-2i atan w}
-check("E  e^{2 pi i R} = (z + r)/(1 + r z)   (exact, z on the unit circle parametrised freely)", sp.cancel(sp.together(lhs - (z + r) / (1 + r * z))) == 0)
+# e^{2 pi i R} = z e^{-2i atan w}
+lhs = z * (1 - sp.I * wz) / (1 + sp.I * wz)
+check("E  e^{2 pi i R} = (z + r)/(1 + r z)   (exact, z on the unit circle parametrised freely)",
+      sp.cancel(sp.together(lhs - (z + r) / (1 + r * z))) == 0)
 mob = (z + r) / (1 + r * z)
 check("E  multiplier at +1 = (1-r)/(1+r) = k ;  at -1 = (1+r)/(1-r) = 1/k",
       sp.simplify(sp.diff(mob, z).subs(z, 1) - k) == 0 and sp.simplify(sp.diff(mob, z).subs(z, -1) - 1 / k) == 0)
-check("E  Moebius map fixes +1 and -1", sp.simplify(mob.subs(z, 1) - 1) == 0 and sp.simplify(mob.subs(z, -1) + 1) == 0)
+check("E  Moebius map fixes +1 and -1", sp.simplify(mob.subs(z, 1) - 1)
+      == 0 and sp.simplify(mob.subs(z, -1) + 1) == 0)
 ks, kt = sp.symbols("k_s k_t", positive=True)
-rr = lambda kk: (1 - kk) / (1 + kk)
+def rr(kk): return (1 - kk) / (1 + kk)
+
+
 check("E  velocity addition r_{s+t} = (r_s + r_t)/(1 + r_s r_t)  (k_{s+t} = k_s k_t)",
       sp.cancel(rr(ks * kt) - (rr(ks) + rr(kt)) / (1 + rr(ks) * rr(kt))) == 0)
 check("E  matrix product [[1,r_s],[r_s,1]][[1,r_t],[r_t,1]] has r-parameter (r_s+r_t)/(1+r_s r_t)",
       (lambda M: sp.cancel(M[0, 1] / M[0, 0] - (rr(ks) + rr(kt)) / (1 + rr(ks) * rr(kt))) == 0 and sp.cancel(M[0, 0] - M[1, 1]) == 0 and sp.cancel(M[0, 1] - M[1, 0]) == 0)(
           sp.Matrix([[1, rr(ks)], [rr(ks), 1]]) * sp.Matrix([[1, rr(kt)], [rr(kt), 1]])))
-check("E  (1+r)/(1-r) = 1/k  =>  2 artanh(r) = ln((1+r)/(1-r)) = -ln k = 2 pi t", sp.simplify((1 + r) / (1 - r) - 1 / k) == 0)
+check("E  (1+r)/(1-r) = 1/k  =>  2 artanh(r) = ln((1+r)/(1-r)) = -ln k = 2 pi t",
+      sp.simplify((1 + r) / (1 - r) - 1 / k) == 0)
 Pr = (1 - r**2) / (1 - 2 * r * cosR + r**2)
 identity("E  Poisson: push-forward density 1/R'(x) = E/(2k) equals (1-r^2)/(1-2r cos(2 pi R)+r^2)", E / (2 * k) - Pr)
 
@@ -244,7 +267,8 @@ identity("E  Poisson: push-forward density 1/R'(x) = E/(2k) equals (1-r^2)/(1-2r
 # Section 4 and Appendices D, F  (resolution time, unresolved fraction)
 # ==============================================================================================
 a, b = sp.symbols("a b", positive=True)
-check("4  tan(pi/2 - a) = cot(a)  (x = n + 1/2 - eps  =>  T = cot(pi eps))", sp.simplify(sp.tan(sp.pi / 2 - a) - 1 / sp.tan(a)) == 0)
+check("4  tan(pi/2 - a) = cot(a)  (x = n + 1/2 - eps  =>  T = cot(pi eps))",
+      sp.simplify(sp.tan(sp.pi / 2 - a) - 1 / sp.tan(a)) == 0)
 check("4  solving k cot(a) = tan(b) for k gives k = tan(a) tan(b)   (a = pi eps, b = pi delta)",
       [sp.simplify(sol - sp.tan(a) * sp.tan(b)) for sol in sp.solve(sp.Eq(k / sp.tan(a), sp.tan(b)), k)] == [0])
 check("4  1 - tan a tan b = cos(a+b)/(cos a cos b)  => t*>0 iff eps+delta<1/2 (a,b in (0,pi/2))",
@@ -253,9 +277,11 @@ zz = sp.symbols("zz", positive=True)
 check("F  d/dz (tan z - z) = tan^2 z > 0, value 0 at 0  =>  tan z > z on (0, pi/2)  =>  estimate overshoots",
       sp.simplify(sp.diff(sp.tan(zz) - zz, zz) - sp.tan(zz) ** 2) == 0)
 ser = sp.series(sp.log(sp.tan(zz) / zz), zz, 0, 6).removeO()
-check("F  ln(tan z/z) = z^2/3 + 7 z^4/90 + ...", sp.expand(ser - (zz**2 / 3 + 7 * zz**4 / 90)) == 0)
+check("F  ln(tan z/z) = z^2/3 + 7 z^4/90 + ...",
+      sp.expand(ser - (zz**2 / 3 + 7 * zz**4 / 90)) == 0)
 ee = sp.symbols("ee", positive=True)
-lead = sp.series(sp.log(sp.tan(sp.pi * ee) / (sp.pi * ee)) / (2 * sp.pi), ee, 0, 4).removeO()
+lead = sp.series(sp.log(sp.tan(sp.pi * ee) / (sp.pi * ee)) /
+                 (2 * sp.pi), ee, 0, 4).removeO()
 check("F  t_approx - t* = (1/2pi)[ln(tan(pi e)/(pi e)) + ln(tan(pi d)/(pi d))] = (pi/6)(e^2 + d^2) + O(e^4+d^4)",
       sp.simplify(lead - sp.pi * ee**2 / 6) == 0)
 aa = sp.symbols("aa", positive=True)
@@ -272,20 +298,24 @@ neg = [
     ("sin(2 pi R) = 2k s/D", sinR - 2 * k * s / D),
     ("dR/dt = +sin(2 pi R)", dRdt - sinR),
     ("D^2 + (1-k)^2 s^2 = 2D", D**2 + ((1 - k) * s) ** 2 - 2 * D),
-    ("Poisson with r = tanh(2 pi t)", E / (2 * k) - (1 - ((1 - k**2) / (1 + k**2)) ** 2) / (1 - 2 * ((1 - k**2) / (1 + k**2)) * cosR + ((1 - k**2) / (1 + k**2)) ** 2)),
+    ("Poisson with r = tanh(2 pi t)", E / (2 * k) - (1 - ((1 - k**2) / (1 + k**2)) **
+     2) / (1 - 2 * ((1 - k**2) / (1 + k**2)) * cosR + ((1 - k**2) / (1 + k**2)) ** 2)),
     ("tan(pi R) = k^2 tan(pi x)", sinR * (1 + c) - k**2 * s * (1 + cosR)),
 ]
 CONTROLS = []
 for name, expr in neg:
-    CONTROLS.append((f"wrong formula: {name}", (not zero_on_circle(expr)) and (not zero_param(expr))))
+    CONTROLS.append(
+        (f"wrong formula: {name}", (not zero_on_circle(expr)) and (not zero_param(expr))))
 
 # ==============================================================================================
 # Numbers quoted in Appendix F (50 digits)
 # ==============================================================================================
 mp.dps = 50
 TPm = 2 * mpi
-exact = lambda e, d: mlog(1 / (mtan(mpi * d) * mtan(mpi * e))) / TPm
-approx = lambda e, d: mlog(1 / (mpi**2 * e * d)) / TPm
+def exact(e, d): return mlog(1 / (mtan(mpi * d) * mtan(mpi * e))) / TPm
+def approx(e, d): return mlog(1 / (mpi**2 * e * d)) / TPm
+
+
 table = [  # eps, delta, exact, estimate, estimate-exact  (as printed in Appendix F)
     ("1e-3", "1e-3", "1.834427", "1.834428", 1.0e-6),
     ("1e-6", "1e-4", "3.300299", "3.300299", 5.2e-9),
@@ -298,18 +328,23 @@ for e_s, d_s, ex_s, ap_s, df in table:
     e, d = mpf(e_s), mpf(d_s)
     ex, ap = exact(e, d), approx(e, d)
     ok_tab &= (f"{float(ex):.6f}" == ex_s) and (f"{float(ap):.6f}" == ap_s)
-    ok_tab &= abs(float(ap - ex) / df - 1) < 0.05            # Appendix F quotes 2 significant figures
+    # Appendix F quotes 2 significant figures
+    ok_tab &= abs(float(ap - ex) / df - 1) < 0.05
 check("F  all five table rows of Appendix F (exact, estimate, estimate-exact) reproduce at 50 digits", ok_tab)
 
 # ----------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------
 # Finding: the asymptotic of Appendix D needs k << delta << 1, not just both small.
 # ----------------------------------------------------------------------------------------------
+
+
 def unresolved(kv, dv):
     return 1 - (2 / mpi) * matan(mtan(mpi * dv) / kv)
 
 
-claim = lambda kv, dv: 2 * kv / (mpi**2 * dv)
+def claim(kv, dv): return 2 * kv / (mpi**2 * dv)
+
+
 FIND = []
 for kv, dv in ((mpf("1e-8"), mpf("1e-2")), (mpf("1e-4"), mpf("1e-2")), (mpf("1e-3"), mpf("1e-6")), (mpf("1e-5"), mpf("1e-6"))):
     FIND.append((kv, dv, unresolved(kv, dv), claim(kv, dv)))

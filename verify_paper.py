@@ -140,33 +140,46 @@ class MaxTracker(dict):
 def check_identities(rep, rng, N, tol):
     m = MaxTracker()
     for _ in range(N):
-        x, t, s = mpf(rng.uniform(-3, 3)), mpf(rng.uniform(-1.2, 1.2)), mpf(rng.uniform(-1.2, 1.2))
+        x, t, s = mpf(rng.uniform(-3, 3)), mpf(rng.uniform(-1.2,
+                                                           1.2)), mpf(rng.uniform(-1.2, 1.2))
         k = kfac(t)
         y = R_closed(x, t)
         th = TP * y
 
-        m.update_max("A.3  cell form == closed form (t of either sign)", R_closed(x, t) - R_cell(x, t))
-        m.update_max("A.2  D^2 + ((1-k) sin)^2 = 2E", D_(x, t) ** 2 + ((1 - k) * sin(TP * x)) ** 2 - 2 * E_(x, t))
+        m.update_max("A.3  cell form == closed form (t of either sign)",
+                     R_closed(x, t) - R_cell(x, t))
+        m.update_max("A.2  D^2 + ((1-k) sin)^2 = 2E", D_(x, t) **
+                     2 + ((1 - k) * sin(TP * x)) ** 2 - 2 * E_(x, t))
         m.update_max("A.1  D and E strictly positive (violation size)",
                      max(mpf(0), -D_(x, t)) + max(mpf(0), -E_(x, t)))
         m.update_max("Res1 R_0 = id", R_closed(x, 0) - x)
-        m.update_max("Res1 dR/dt = -sin(2 pi R)", diff(lambda tt: R_closed(x, tt), t) + sin(th))
-        m.update_max("B    sin(2 pi R) = 2k sin(2 pi x)/E", sin(th) - 2 * k * sin(TP * x) / E_(x, t))
-        m.update_max("Res2 dR/dx = 2k/E", diff(lambda xx: R_closed(xx, t), x) - 2 * k / E_(x, t))
-        m.update_max("Res2 shift equivariance R(x+2) = R(x)+2", R_closed(x + 2, t) - R_closed(x, t) - 2)
-        m.update_max("Res3 group law R_{s+t} = R_s o R_t (either sign)", R_closed(x, s + t) - R_closed(y, s))
+        m.update_max("Res1 dR/dt = -sin(2 pi R)",
+                     diff(lambda tt: R_closed(x, tt), t) + sin(th))
+        m.update_max("B    sin(2 pi R) = 2k sin(2 pi x)/E",
+                     sin(th) - 2 * k * sin(TP * x) / E_(x, t))
+        m.update_max("Res2 dR/dx = 2k/E",
+                     diff(lambda xx: R_closed(xx, t), x) - 2 * k / E_(x, t))
+        m.update_max("Res2 shift equivariance R(x+2) = R(x)+2",
+                     R_closed(x + 2, t) - R_closed(x, t) - 2)
+        m.update_max(
+            "Res3 group law R_{s+t} = R_s o R_t (either sign)", R_closed(x, s + t) - R_closed(y, s))
         m.update_max("Res3 inverse R_{-t} o R_t = id", R_closed(y, -t) - x)
-        m.update_max("C.2  dV/dt = -sin^2(2 pi R)", diff(lambda tt: V(R_closed(x, tt)), t) + sin(th) ** 2)
+        m.update_max("C.2  dV/dt = -sin^2(2 pi R)",
+                     diff(lambda tt: V(R_closed(x, tt)), t) + sin(th) ** 2)
         if fabs(cos(pi * x)) > mpf("1e-3"):          # tan has a pole at half-integers
-            m.update_max("Res1 tan(pi R) = k tan(pi x)", tan(pi * y) - k * tan(pi * x))
+            m.update_max("Res1 tan(pi R) = k tan(pi x)",
+                         tan(pi * y) - k * tan(pi * x))
 
         # Appendix E: geometry
         z, r, rs = exp(mpc(0, 1) * TP * x), tanh(pi * t), tanh(pi * s)
         m.update_max("E    Moebius form (z+r)/(1+rz), r = tanh(pi t)",
                      exp(mpc(0, 1) * th) - (z + r) / (1 + r * z))
-        m.update_max("E    multiplier at +1: (1-r)/(1+r) = e^{-2 pi t}", (1 - r) / (1 + r) - k)
-        m.update_max("E    velocity addition for r_{s+t}", tanh(pi * (s + t)) - (rs + r) / (1 + rs * r))
-        m.update_max("E    hyperbolic distance 2 artanh r = 2 pi t", 2 * atanh(r) - TP * t)
+        m.update_max(
+            "E    multiplier at +1: (1-r)/(1+r) = e^{-2 pi t}", (1 - r) / (1 + r) - k)
+        m.update_max(
+            "E    velocity addition for r_{s+t}", tanh(pi * (s + t)) - (rs + r) / (1 + rs * r))
+        m.update_max("E    hyperbolic distance 2 artanh r = 2 pi t",
+                     2 * atanh(r) - TP * t)
         m.update_max("E    Poisson kernel: E/(2k) = P_r(2 pi R)",
                      E_(x, t) / (2 * k) - (1 - r * r) / (1 - 2 * r * cos(th) + r * r))
     for name, v in m.items():
@@ -181,14 +194,17 @@ def check_fixed_points(rep, rng, tol):
         h = mpf(n) + mpf(1) / 2
         m.update_max("C.1  integers fixed", R_closed(mpf(n), t) - n)
         m.update_max("C.1  half-integers fixed", R_closed(h, t) - h)
-        m.update_max("C.1  slope at integer = e^{-2 pi t}", diff(lambda xx: R_closed(xx, t), mpf(n)) - kfac(t))
-        m.update_max("C.1  slope at half-integer = e^{+2 pi t}", diff(lambda xx: R_closed(xx, t), h) - 1 / kfac(t))
+        m.update_max("C.1  slope at integer = e^{-2 pi t}",
+                     diff(lambda xx: R_closed(xx, t), mpf(n)) - kfac(t))
+        m.update_max("C.1  slope at half-integer = e^{+2 pi t}", diff(
+            lambda xx: R_closed(xx, t), h) - 1 / kfac(t))
     for name, v in m.items():
         rep.residual(name, v, tol)
 
 
 def check_inequalities(rep, rng, N):
-    slack = mpf(10) ** (-(mp.dps - 8))               # allow for rounding at the working precision only
+    # allow for rounding at the working precision only
+    slack = mpf(10) ** (-(mp.dps - 8))
     v8 = v8c = v9 = 0
     for _ in range(N):
         x = mpf(rng.uniform(-0.5, 0.5))
@@ -236,10 +252,12 @@ def check_nonuniform_limit(rep):
     to round(x) is still ~1/2."""
     worst = mpf(0)
     for t in (mpf(1), mpf(3), mpf(6)):
-        eps = mpf("1e-40")                           # start 1e-40 below the half-integer 1/2; round(x) = 0
+        # start 1e-40 below the half-integer 1/2; round(x) = 0
+        eps = mpf("1e-40")
         gap = fabs(R_cell(mpf(1) / 2 - eps, t))
         worst = max(worst, fabs(gap - mpf(1) / 2))
-    rep.residual("D    gap to rounding is 1/2 at finite t (eps=1e-40)", worst, mpf("1e-10"))
+    rep.residual(
+        "D    gap to rounding is 1/2 at finite t (eps=1e-40)", worst, mpf("1e-10"))
 
 
 def check_resolved_fraction(rep, rng, tol):
@@ -252,13 +270,17 @@ def check_resolved_fraction(rep, rng, tol):
         t = mpf(rng.uniform(0, 3))
         dl = mpf(rng.uniform(0.005, 0.45))
         formula = (2 / pi) * atan(tan(pi * dl) / kfac(t))
-        edge = findroot(lambda xx: R_cell(xx, t) - dl, formula / 2, tol=rtol, maxsteps=200)
-        m.update_max("D    resolved fraction = 2 x (start landing at delta)", formula - 2 * edge)
-        m.update_max("D    resolved fraction = 2 R_{-t}(delta)", formula - 2 * R_cell(dl, -t))
+        edge = findroot(lambda xx: R_cell(xx, t) - dl,
+                        formula / 2, tol=rtol, maxsteps=200)
+        m.update_max(
+            "D    resolved fraction = 2 x (start landing at delta)", formula - 2 * edge)
+        m.update_max(
+            "D    resolved fraction = 2 R_{-t}(delta)", formula - 2 * R_cell(dl, -t))
     for t, dl in ((mpf(4), mpf("0.01")), (mpf(6), mpf("0.001"))):
         k = kfac(t)
         unresolved = 1 - (2 / pi) * atan(tan(pi * dl) / k)
-        asym.update_max("D    unresolved ~ 2k/(pi^2 delta): relative error", unresolved / (2 * k / (pi ** 2 * dl)) - 1)
+        asym.update_max("D    unresolved ~ 2k/(pi^2 delta): relative error",
+                        unresolved / (2 * k / (pi ** 2 * dl)) - 1)
     for name, v in m.items():
         rep.residual(name, v, tol)
     for name, v in asym.items():
@@ -271,23 +293,27 @@ def check_resolution_time(rep):
         (mpf("1e-6"), mpf("1e-4"), "3.300299", "3.300299"),
         (mpf("1e-9"), mpf("1e-6"), "5.132638", "5.132638"),
     ]
-    extra = [(mpf("0.01"), mpf("0.1"), None, None), (mpf("0.2"), mpf("0.2"), None, None)]
-    approx = lambda e, d: log(1 / (pi ** 2 * e * d)) / TP
-    exact_closed = lambda e, d: log(1 / (tan(pi * d) * tan(pi * e))) / TP
+    extra = [(mpf("0.01"), mpf("0.1"), None, None),
+             (mpf("0.2"), mpf("0.2"), None, None)]
+
+    def approx(e, d): return log(1 / (pi ** 2 * e * d)) / TP
+    def exact_closed(e, d): return log(1 / (tan(pi * d) * tan(pi * e))) / TP
 
     print("Section 4 / Appendix F -- resolution time t*(eps, delta); the last two rows are outside the small-scale regime")
     print(f"  {'eps':>8} {'delta':>8} | {'exact (root-find)':>18} {'exact (closed)':>16} {'small-scale':>14} | {'approx - exact':>14}")
     worst, digits_ok = mpf(0), True
     for e, d, q_exact, q_approx in quoted + extra:
         x0 = mpf(1) / 2 - e
-        te = findroot(lambda t: R_cell(x0, t) - d, approx(e, d), tol=mpf(10) ** (-(mp.dps - 8)), maxsteps=200)
+        te = findroot(lambda t: R_cell(x0, t) - d, approx(e, d),
+                      tol=mpf(10) ** (-(mp.dps - 8)), maxsteps=200)
         tc, ta = exact_closed(e, d), approx(e, d)
         worst = max(worst, fabs(te - tc))
         print(f"  {nstr(e, 2):>8} {nstr(d, 2):>8} | {nstr(te, 12):>18} {nstr(tc, 12):>16} {nstr(ta, 12):>14} | {nstr(ta - te, 3):>14}")
         if q_exact is not None:
             digits_ok &= f"{float(te):.6f}" == q_exact and f"{float(ta):.6f}" == q_approx
     print()
-    rep.residual("4    exact t* (closed form) vs root-find", worst, mpf(10) ** (-(mp.dps - 10)))
+    rep.residual("4    exact t* (closed form) vs root-find",
+                 worst, mpf(10) ** (-(mp.dps - 10)))
     rep.flag("F    the three quoted (exact, approx) pairs, 6 decimals", digits_ok)
     rep.flag("4    t* > 0 iff delta + eps < 1/2",
              exact_closed(mpf("0.2"), mpf("0.2")) > 0 and exact_closed(mpf("0.3"), mpf("0.3")) < 0)
@@ -303,16 +329,21 @@ def check_resolution_links(rep, rng, tol):
         t, dl = mpf(rng.uniform(0, 3)), mpf(rng.uniform(0.01, 0.45))
         k = kfac(t)
         ec = atan(k / tan(pi * dl)) / pi
-        m.update_max("F    t*(eps_c(t), delta) = t", log(1 / (tan(pi * dl) * tan(pi * ec))) / TP - t)
-        m.update_max("F    unresolved fraction = 2 eps_c(t)", 1 - (2 / pi) * atan(tan(pi * dl) / k) - 2 * ec)
+        m.update_max("F    t*(eps_c(t), delta) = t",
+                     log(1 / (tan(pi * dl) * tan(pi * ec))) / TP - t)
+        m.update_max("F    unresolved fraction = 2 eps_c(t)",
+                     1 - (2 / pi) * atan(tan(pi * dl) / k) - 2 * ec)
     for name, v in m.items():
         rep.residual(name, v, tol)
-    worst = mpf(0)                                   # relative deviation from the stated leading term
+    # relative deviation from the stated leading term
+    worst = mpf(0)
     for e, d in ((mpf("1e-3"), mpf("1e-3")), (mpf("1e-4"), mpf("1e-3")), (mpf("1e-5"), mpf("1e-4"))):
         approx = log(1 / (pi ** 2 * e * d)) / TP
         exact = log(1 / (tan(pi * d) * tan(pi * e))) / TP
-        worst = max(worst, fabs((approx - exact) / (pi / 6 * (e * e + d * d)) - 1))
-    rep.residual("F    estimate - exact = (pi/6)(eps^2+delta^2), relative", worst, mpf("1e-4"))
+        worst = max(worst, fabs((approx - exact) /
+                    (pi / 6 * (e * e + d * d)) - 1))
+    rep.residual(
+        "F    estimate - exact = (pi/6)(eps^2+delta^2), relative", worst, mpf("1e-4"))
 
 
 def check_code(rep, rng):
@@ -321,7 +352,8 @@ def check_code(rep, rng):
         import numpy as np
         import discreteness as dz
     except Exception as exc:  # noqa: BLE001
-        print(f"(cross-check against discreteness.py skipped: {exc.__class__.__name__}: {exc})\n")
+        print(
+            f"(cross-check against discreteness.py skipped: {exc.__class__.__name__}: {exc})\n")
         return
     N = 400
     xs = [rng.uniform(-3, 3) for _ in range(N)]
@@ -329,9 +361,11 @@ def check_code(rep, rng):
     got = dz.flow(np.array(ts), np.array(xs))
     abs_err = rel_err = 0.0
     for x, t, g in zip(xs, ts, got):
-        xm, tm = mpf(x), mpf(t)                      # the exact binary values the code received
+        # the exact binary values the code received
+        xm, tm = mpf(x), mpf(t)
         ref = R_cell(xm, tm)
-        d = fabs(ref - nint(xm))                     # distance to the nearest integer
+        # distance to the nearest integer
+        d = fabs(ref - nint(xm))
         abs_err = max(abs_err, float(fabs(mpf(float(g)) - ref)))
         # Relative accuracy of the distance to the integer.  Only meaningful in the cell n = 0:
         # flow() returns the absolute position n + d, and float64 cannot hold a distance d below
@@ -341,8 +375,10 @@ def check_code(rep, rng):
         # cos(pi y) near y = 1/2, where a naive float64 evaluation cancels catastrophically.)
         if nint(xm) == 0 and d > mpf("1e-300") and fabs(mpf(1) / 2 - fabs(xm)) > mpf("1e-3"):
             rel_err = max(rel_err, float(fabs(mpf(float(g)) - ref) / d))
-    rep.residual("code flow(): max abs error vs reference (t in [-1,6])", mpf(abs_err), mpf("1e-12"))
-    rep.residual("code flow(): max relative error to the integer (cell n=0)", mpf(rel_err), mpf("1e-10"))
+    rep.residual(
+        "code flow(): max abs error vs reference (t in [-1,6])", mpf(abs_err), mpf("1e-12"))
+    rep.residual("code flow(): max relative error to the integer (cell n=0)", mpf(
+        rel_err), mpf("1e-10"))
     # Regression test for starts arbitrarily close to a half-integer (distance 1e-16 ... 1e-1, both sides,
     # cells n = -2, 0, 1, times from -3 to 6).  There the map is steepest (slope e^{2 pi t}), so any avoidable
     # rounding in the evaluation is amplified; random sampling above almost never lands here.  The reference
@@ -352,48 +388,65 @@ def check_code(rep, rng):
     for n in (-2, 0, 1):
         for sgn in (-1, 1):
             for t in (-3.0, -1.0, 0.5, 1.0, 2.0, 3.0, 4.0, 6.0):
-                xs = [n + sgn * (0.5 - 10 ** (-16 + 15 * j / 59)) for j in range(60)]
+                xs = [n + sgn * (0.5 - 10 ** (-16 + 15 * j / 59))
+                      for j in range(60)]
                 for x, g in zip(xs, dz.flow(t, np.array(xs))):
                     ref = R_closed(mpf(x), mpf(t))
                     e = fabs(mpf(float(g)) - ref)
                     abs_hi = max(abs_hi, e)
-                    if n == 0 and fabs(ref) > mpf("1e-300"):      # relative accuracy only meaningful in cell 0
+                    # relative accuracy only meaningful in cell 0
+                    if n == 0 and fabs(ref) > mpf("1e-300"):
                         rel_hi = max(rel_hi, e / fabs(ref))
-    rep.residual("code flow(): max abs error, starts within 1e-1..1e-16 of a half-integer (-3<=t<=6)", abs_hi, mpf("1e-14"))
-    rep.residual("code flow(): max rel error to the integer, same sweep (cell n=0)", rel_hi, mpf("1e-13"))
+    rep.residual(
+        "code flow(): max abs error, starts within 1e-1..1e-16 of a half-integer (-3<=t<=6)", abs_hi, mpf("1e-14"))
+    rep.residual(
+        "code flow(): max rel error to the integer, same sweep (cell n=0)", rel_hi, mpf("1e-13"))
     # Extreme times of either sign (|t| up to 1000 makes e^{+-2 pi t} overflow or underflow in float64): the map
     # must stay finite, fix every integer and half-integer exactly, and keep every start in its closed cell.
     # (A naive evaluation returns nan at exact integers once t < -113, from inf * sin(pi y) = inf * 0.)
-    special = np.array([float(m) for m in range(-3, 4)] + [m + 0.5 for m in range(-3, 3)])
+    special = np.array([float(m) for m in range(-3, 4)] +
+                       [m + 0.5 for m in range(-3, 3)])
     generic = np.array([-2.7, -1.3, -0.4, 0.1, 0.25, 0.49, 1.2, 2.6])
     ext_times = (-1000.0, -200.0, -114.0, -113.0, -50.0, 50.0, 200.0, 1000.0)
     bad = 0
     for t in ext_times:
         fixed = dz.flow(t, special)
         moved = dz.flow(t, generic)
-        bad += int(not np.all(fixed == special))                                   # exact fixed points
-        bad += int(not np.all(np.isfinite(moved)))                                 # finite everywhere
-        bad += int(not np.all(np.abs(moved - np.round(generic)) <= 0.5))           # stays in its closed cell
-    rep.count("code flow(): finite, cell-preserving, exact fixed points, |t| up to 1000", bad, 3 * len(ext_times))
+        # exact fixed points
+        bad += int(not np.all(fixed == special))
+        # finite everywhere
+        bad += int(not np.all(np.isfinite(moved)))
+        # stays in its closed cell
+        bad += int(not np.all(np.abs(moved - np.round(generic)) <= 0.5))
+    rep.count("code flow(): finite, cell-preserving, exact fixed points, |t| up to 1000",
+              bad, 3 * len(ext_times))
     if hasattr(dz, "resolved_fraction"):
         worst = max(float(fabs(mpf(dz.resolved_fraction(t)) - (2 / pi) * atan(tan(pi * mpf("0.02")) / kfac(mpf(t)))))
                     for t in (0.0, 0.1, 0.4, 1.0, 1.5, 3.0))
-        rep.residual("code resolved_fraction(): max abs error", mpf(worst), mpf("1e-12"))
+        rep.residual("code resolved_fraction(): max abs error",
+                     mpf(worst), mpf("1e-12"))
     if hasattr(dz, "resolution_time"):
-        pairs = [(1e-3, 1e-3), (1e-6, 1e-4), (1e-9, 1e-6), (1e-2, 1e-1), (0.2, 0.2)]
+        pairs = [(1e-3, 1e-3), (1e-6, 1e-4),
+                 (1e-9, 1e-6), (1e-2, 1e-1), (0.2, 0.2)]
         worst = max(float(fabs(mpf(dz.resolution_time(e, d))
                                - log(1 / (tan(pi * mpf(d)) * tan(pi * mpf(e)))) / TP)) for e, d in pairs)
-        rep.residual("code resolution_time(): max abs error", mpf(worst), mpf("1e-12"))
+        rep.residual("code resolution_time(): max abs error",
+                     mpf(worst), mpf("1e-12"))
 
 
 # --------------------------------------------------------------------------- #
 def main(argv=None):
     global TP
-    ap = argparse.ArgumentParser(description="High-precision verification of the results of README.md / APPENDIX.md.")
-    ap.add_argument("--dps", type=int, default=50, help="working precision in decimal digits (default 50)")
-    ap.add_argument("--samples", type=int, default=150, help="random samples per check (default 150)")
-    ap.add_argument("--seed", type=int, default=1, help="random seed (default 1)")
-    ap.add_argument("--no-code", action="store_true", help="skip the cross-check against discreteness.py")
+    ap = argparse.ArgumentParser(
+        description="High-precision verification of the results of README.md / APPENDIX.md.")
+    ap.add_argument("--dps", type=int, default=50,
+                    help="working precision in decimal digits (default 50)")
+    ap.add_argument("--samples", type=int, default=150,
+                    help="random samples per check (default 150)")
+    ap.add_argument("--seed", type=int, default=1,
+                    help="random seed (default 1)")
+    ap.add_argument("--no-code", action="store_true",
+                    help="skip the cross-check against discreteness.py")
     args = ap.parse_args(argv)
     if args.dps < 40:
         ap.error("--dps must be at least 40 (the pass thresholds assume it)")
@@ -408,7 +461,8 @@ def main(argv=None):
     check_identities(rep, rng, args.samples, mpf(10) ** (-30))
     check_fixed_points(rep, rng, mpf(10) ** (-30))
     check_inequalities(rep, rng, max(args.samples, 1000))
-    check_monotone_either_sign(rep, random.Random(args.seed + 1000), max(args.samples, 1000))
+    check_monotone_either_sign(rep, random.Random(
+        args.seed + 1000), max(args.samples, 1000))
     check_nonuniform_limit(rep)
     check_resolved_fraction(rep, rng, mpf(10) ** (-30))
     check_resolution_time(rep)
