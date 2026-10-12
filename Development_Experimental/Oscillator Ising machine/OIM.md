@@ -8,7 +8,7 @@
 
 The exact flow is correct, and it is useful in one specific situation.
 
-- **How much does the clean picture degrade?** Gently and predictably. Turning on the coupling between oscillators adds an error that grows in direct proportion to the coupling strength, and a closed-form correction cuts that error by about 49 times. Noise does not destroy the picture; it replaces its sharp edges with a blur of known width.
+- **How much does the clean picture degrade?** Gently and predictably. Turning on the coupling between oscillators adds an error that grows in direct proportion to the coupling strength, and a closed-form correction cuts that error by a factor of about $4.9/\rho$ (49 times at $\rho=0.1$, 12 times at $\rho=0.4$; $\rho$ is defined in section 3). Noise does not destroy the picture; it replaces its sharp edges with a blur of known width.
 - **Is there a real computational advantage?** Yes, but only when the injection ("snap to 0 or π") term is much stronger than the coupling. In that regime the exact flow lets a simulation take large time steps where standard methods must take tiny ones. Measured gain: roughly **5 to 10 times fewer coupling evaluations** than the best standard explicit method (10 to 25 times at the strongest setting on other random seeds).
 - **Where is there no advantage?** When the injection is weak or moderate, which is where most OIM schedules operate. There, plain RK4 is as good or better.
 
@@ -91,7 +91,7 @@ $$
 \tfrac{\pi}{2}-\varphi_s\ \text{(unstable)}
 $$
 
-Locking exists only while $|\Delta|<K_s$. I derived the closed form (it is not in the README) and checked it against high-accuracy integration to about $10^{-12}$ for offsets up to $0.95\,K_s$.
+Locking exists only while $|\Delta|<K_s$. I derived the closed form (it is not in the README) and checked it against high-accuracy integration to about $10^{-12}$ for offsets up to $0.95\,K_s$. It is also checked at 50 digits in `verify_paper.py` (label `OIM`): the differential equation, the group law in $S$, the identity at $S=0$, both moved fixed points, and the reduction to the README map at $\Delta=0$. The residuals are about $10^{-49}$ on random starts, offsets up to $0.95\,K_s$ and values of $S$ of either sign. These checks are for a constant ratio $d=\Delta/K_s$, which is the case the closed form covers. With a ramped $K_s$ and a fixed $\Delta$ the ratio changes along the ramp and the closed form no longer applies; a piecewise-constant $K_s$ composes exactly, step by step, by the group law.
 
 ### 3.3 Noise
 
@@ -123,7 +123,7 @@ $$
 p(x)\;\propto\;\exp\!\Big(\frac{a}{\pi\sigma^{2}}\cos 2\pi x\Big)
 $$
 
-The simulated late-time value matched this floor ($z=-1.60$). In the crossover region the noise-free formula (`APPENDIX.md`, section D) underestimates the unresolved fraction by up to about 30%.
+The simulated late-time value matched this floor ($z=-1.60$). In the crossover region the noise-free formula (`APPENDIX.md`, section D) falls increasingly short of the simulation: the simulated unresolved fraction is 30% above it at $t=1.0$, about 4 times above it at $t=1.5$ and more than 1000 times above it at $t=2.5$, because the noise floor takes over once the noise-free formula has decayed below it. Adding the floor to the noise-free formula ("README + floor" in the script's output) removes most of this; the simulation still exceeds it by up to 19% in the crossover region (largest at $t=0.8$).
 
 **Waiting time is capped.** Without noise (README, Section 4), the time to resolve a phase that starts a distance $\varepsilon$ from the unstable point grows without limit as $\varepsilon\to0$:
 
@@ -180,16 +180,19 @@ Other seeds gave 10 to 25× at $r=100$ and 2.5 to 5× at $r=30$. At $r=10$ the r
 
 ### 5.2 Wall-clock time at $r=100$
 
-Splitting was faster by these ranges across all seven full runs. Timings vary by up to about 2× between runs of identical code, so quote ranges, not single values.
+Splitting was faster by these ranges in the full runs on seed 2024. Timings vary by up to about 2× between runs of identical code, so quote ranges, not single values.
 
 | Compared with | $N=100$ | $N=400$ | $N=1500$ |
 | --- | --- | --- | --- |
 | RK4 | 15 to 27× (all sizes) | | |
-| Euler (where Euler is accurate) | 4.2 to 5.9× (all sizes) | | not comparable |
-| BDF (sparse Jacobian) | 5 to 8× | 9 to 16× | **55 to 104×** |
+| Euler (where Euler is accurate), seed 2024 | 4.2 to 6.0× (all sizes) | | not comparable |
+| Euler (where Euler is accurate), seeds 1 and 2 | 10.9 to 11.8× | 11.2× (seed 2 only) | 11.7 to 12.0× |
+| BDF (sparse Jacobian) | 5 to 9× | 9 to 16× | **55 to 104×** |
 | LSODA (dense Jacobian) | 1.2 to 1.7× | 2.6 to 5.6× | not run |
 
-The "not comparable" entry is deliberate. Euler with the step size tuned at $N=100$ fails at $N=1500$ (about half the spins wrong, cut value 19% below the reference), so timing it there would be misleading.
+The Euler ratio depends on the seed, and this is not timing noise. The Euler step size that experiment 3a selects is $h=0.005$ on seed 2024 and $h=0.002$ on seeds 1 and 2, so the Euler baseline does about 2.5 times more steps on the latter. Re-runs on seeds 1 and 2 stay inside the ranges above for RK4, LSODA and BDF at $N\ge400$. Do not quote the Euler figure without the seed.
+
+The "not comparable" entries are deliberate. On seed 2024, Euler with the step size tuned at $N=100$ fails at $N=1500$ (about half the spins wrong, cut value 19% below the reference), so timing it there would be misleading. On seed 1, Euler at $N=400$ falls just under the 99.9% per-spin threshold and is excluded for the same reason.
 
 ### 5.3 Quality of the answer
 

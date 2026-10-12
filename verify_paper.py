@@ -42,6 +42,11 @@ What is checked  (each label below is a section of README.md or APPENDIX.md; "Re
         (pi/6)(eps^2+delta^2) of the small-scale estimate, and the unresolved radius
         eps_c(t) = (1/pi) arctan(k/tan(pi delta)), i.e. t*(eps_c(t), delta) = t and
         1 - (resolved fraction) = 2 eps_c(t)
+  OIM   OIM.md section 3.2 (NOT part of the note): the closed-form flow of dphi/dS = d - sin(2 phi),
+        |d| < 1, i.e. a CONSTANT detuning-to-injection ratio d = Delta/K_s.  Checked: the ODE, the group
+        law in S, the identity at S = 0, both moved fixed points, and the reduction to the note's map
+        R_t at d = 0 (phi = pi x, S = pi t).  With a ramped K_s and fixed Delta the ratio d varies and
+        this closed form no longer applies; piecewise-constant K_s composes exactly by the group law.
   code  (optional) float64 flow(), resolved_fraction(), resolution_time() in discreteness.py vs
         this reference, including a sweep of starts arbitrarily close to a half-integer
 """
@@ -51,8 +56,8 @@ import argparse
 import random
 import sys
 
-from mpmath import (atan, atanh, cos, diff, exp, fabs, findroot, log, mp, mpc, mpf, nint, nstr, pi,
-                    sin, tan, tanh)
+from mpmath import (asin, atan, atan2, atanh, cos, diff, exp, fabs, findroot, floor, log, mp, mpc, mpf,
+                    nint, nstr, pi, sin, sqrt, tan, tanh)
 
 TP = None  # 2*pi; set in main() once the working precision is known
 
@@ -346,6 +351,53 @@ def check_resolution_links(rep, rng, tol):
         "F    estimate - exact = (pi/6)(eps^2+delta^2), relative", worst, mpf("1e-4"))
 
 
+def detuned_flow(phi, S, d):
+    """OIM.md section 3.2: exact flow of dphi/dS = d - sin(2 phi), |d| < 1 (d = Delta/K_s, constant).
+
+    Shift to the stable fixed point phi_s = asin(d)/2 and use homogeneous coordinates
+    (p, q) = (sin psi, cos psi), psi = phi - phi_s, in which the Riccati equation for tan(psi) is linear:
+        p' = -w p,   q' = -2 d p + w q,   w = sqrt(1 - d^2).
+    The 2 pi branch of arg(p + i q) is fixed by keeping the result in the cell that contains the start
+    (cells are bounded by the moved unstable fixed points psi_u + m pi)."""
+    w = sqrt(1 - d * d)
+    ps = asin(d) / 2
+    psi = phi - ps
+    pu = pi / 2 - 2 * ps
+    m = floor((psi - pu) / pi) + 1
+    p0, q0 = sin(psi), cos(psi)
+    p = p0 * exp(-w * S)
+    q = (q0 - d / w * p0) * exp(w * S) + d / w * p0 * exp(-w * S)
+    al = atan2(p, q)
+    centre = pu + (m - mpf(1) / 2) * pi
+    return al + TP * nint((centre - al) / TP) + ps
+
+
+def check_detuned(rep, rng, tol):
+    """OIM.md section 3.2 at working precision, on random starts (several cells), random d in (-0.95, 0.95)
+    and random S of either sign.  Exact identities, so the same 1e-30 threshold as the note's identities."""
+    m = MaxTracker()
+    for _ in range(100):
+        phi = mpf(rng.uniform(-10, 10))
+        d = mpf(rng.uniform(-0.95, 0.95))
+        S, S2 = mpf(rng.uniform(-0.5, 2)), mpf(rng.uniform(-0.5, 1.5))
+        f = lambda s_: detuned_flow(phi, s_, d)
+        m.update_max("OIM  detuned flow: dphi/dS = d - sin(2 phi)", diff(f, S) - (d - sin(2 * f(S))))
+        m.update_max("OIM  detuned flow: group law in S (either sign)",
+                     detuned_flow(detuned_flow(phi, S, d), S2, d) - detuned_flow(phi, S + S2, d))
+        m.update_max("OIM  detuned flow: identity at S = 0", detuned_flow(phi, 0, d) - phi)
+        ps = asin(d) / 2
+        m.update_max("OIM  detuned flow: stable fixed point asin(d)/2 stays fixed",
+                     detuned_flow(ps, S, d) - ps)
+        m.update_max("OIM  detuned flow: unstable fixed point pi/2 - asin(d)/2 stays fixed",
+                     detuned_flow(pi / 2 - ps, S, d) - (pi / 2 - ps))
+        # d = 0 must reduce to the note's map: phi = pi x, S = pi t  =>  phi(S) = pi R_t(x)
+        x, t = phi / pi, S / pi
+        m.update_max("OIM  detuned flow at d = 0 equals pi R_t(phi/pi) of the note",
+                     detuned_flow(phi, S, mpf(0)) - pi * R_closed(x, t))
+    for name, v in m.items():
+        rep.residual(name, v, tol)
+
+
 def check_code(rep, rng):
     """Optional: float64 discreteness.py vs the high-precision reference above."""
     try:
@@ -467,6 +519,7 @@ def main(argv=None):
     check_resolved_fraction(rep, rng, mpf(10) ** (-30))
     check_resolution_time(rep)
     check_resolution_links(rep, rng, mpf(10) ** (-30))
+    check_detuned(rep, random.Random(args.seed + 2000), mpf(10) ** (-30))
     if not args.no_code:
         check_code(rep, rng)
     return 0 if rep.show() else 1

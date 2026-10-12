@@ -17,6 +17,18 @@ decision procedure -- no sampling, no floating point, and no problem at the half
 where tan is undefined.  Derivatives are taken by the chain rule on (c, s, k):
     d/dx c = -2 P s,  d/dx s = 2 P c,  d/dt k = -2 P k,   d/dy atan(w) = w'/(1+w^2).
 
+Three kinds of row, reported separately in the output
+-----------------------------------------------------
+  PROVED (decision procedure)  the identity is reduced to a rational function of (c, s, k) and
+        decided EXACTLY by polynomial division modulo s^2+c^2-1, with a second, independent
+        parametrisation-based check (the method described above; function identity()).
+  PROVED (symbolic)            an elementary fact settled by SymPy symbolic manipulation
+        (simplify / cancel / diff / series / solve) with no sampling.  Sound whenever it returns
+        "equal" (a failure to simplify would show up as FAILED, never as a false PROVED).
+  NUMERIC (not a proof)        a numeric reproduction at 50 digits of numbers quoted in the text
+        (the table of Appendix F).  It supports the text but proves nothing, and is labelled so.
+  Counts of each kind are printed at the end.
+
 Logical structure (what is proved here, and what is a standard theorem)
 -----------------------------------------------------------------------
 Labels are sections of README.md / APPENDIX.md ("Res" = Result of README.md Section 3).
@@ -93,14 +105,17 @@ def zero_param(expr):
 ROWS = []
 
 
-def check(label, ok):
-    ROWS.append((label, bool(ok)))
+def check(label, ok, method="sym"):
+    """method: "dp"  = exact decision procedure (identity()),
+               "sym" = SymPy symbolic manipulation,
+               "num" = numeric reproduction at 50 digits (NOT a proof)."""
+    ROWS.append((label, bool(ok), method))
 
 
 def identity(label, expr):
     a, b = zero_on_circle(expr), zero_param(expr)
     check(
-        label + ("" if a == b else "  [DECISION PROCEDURES DISAGREE]"), a and b)
+        label + ("" if a == b else "  [DECISION PROCEDURES DISAGREE]"), a and b, method="dp")
 
 
 # derived trigonometric quantities of the transformed angle 2 pi R = 2 pi x - 2 atan(w)
@@ -330,7 +345,7 @@ for e_s, d_s, ex_s, ap_s, df in table:
     ok_tab &= (f"{float(ex):.6f}" == ex_s) and (f"{float(ap):.6f}" == ap_s)
     # Appendix F quotes 2 significant figures
     ok_tab &= abs(float(ap - ex) / df - 1) < 0.05
-check("F  all five table rows of Appendix F (exact, estimate, estimate-exact) reproduce at 50 digits", ok_tab)
+check("F  all five table rows of Appendix F (exact, estimate, estimate-exact) reproduce at 50 digits", ok_tab, method="num")
 
 # ----------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------
@@ -349,10 +364,12 @@ FIND = []
 for kv, dv in ((mpf("1e-8"), mpf("1e-2")), (mpf("1e-4"), mpf("1e-2")), (mpf("1e-3"), mpf("1e-6")), (mpf("1e-5"), mpf("1e-6"))):
     FIND.append((kv, dv, unresolved(kv, dv), claim(kv, dv)))
 
-w_ = max(len(l) for l, _ in ROWS + CONTROLS)
+LABEL = {"dp": "PROVED (decision procedure)", "sym": "PROVED (symbolic)",
+         "num": "NUMERIC (50 digits, not a proof)"}
+w_ = max(len(r[0]) for r in ROWS + [(l, o, "") for l, o in CONTROLS])
 print(f"{'statement':<{w_}}  status\n" + "-" * (w_ + 10))
-for l, ok in ROWS:
-    print(f"{l:<{w_}}  {'PROVED' if ok else 'FAILED'}")
+for l, ok, m in ROWS:
+    print(f"{l:<{w_}}  {LABEL[m] if ok else 'FAILED'}")
 print("-" * (w_ + 10))
 print("Negative controls (a checker that accepts everything proves nothing):")
 for l, ok in CONTROLS:
@@ -364,7 +381,13 @@ print(f"  {'k':>8} {'delta':>8} {'true unresolved':>18} {'2k/(pi^2 delta)':>18}"
 for kv, dv, tu, cl in FIND:
     print(f"  {nstr(kv, 3):>8} {nstr(dv, 3):>8} {nstr(tu, 8):>18} {nstr(cl, 8):>18}")
 print("-" * (w_ + 10))
-allok = all(ok for _, ok in ROWS) and all(ok for _, ok in CONTROLS)
-print(f"{sum(ok for _, ok in ROWS)}/{len(ROWS)} statements proved, {sum(ok for _, ok in CONTROLS)}/{len(CONTROLS)} wrong formulas rejected.  "
+allok = all(ok for _, ok, _ in ROWS) and all(ok for _, ok in CONTROLS)
+n_dp = sum(ok for _, ok, m in ROWS if m == "dp")
+n_sym = sum(ok for _, ok, m in ROWS if m == "sym")
+n_num = sum(ok for _, ok, m in ROWS if m == "num")
+print(f"{n_dp + n_sym}/{sum(m != 'num' for _, _, m in ROWS)} statements proved "
+      f"({n_dp} by the exact decision procedure, {n_sym} by symbolic manipulation); "
+      f"{n_num}/{sum(m == 'num' for _, _, m in ROWS)} numeric reproduction (not a proof); "
+      f"{sum(ok for _, ok in CONTROLS)}/{len(CONTROLS)} wrong formulas rejected.  "
       + ("ALL EXACT CHECKS PASSED" if allok else "SOME CHECKS FAILED"))
 sys.exit(0 if allok else 1)
