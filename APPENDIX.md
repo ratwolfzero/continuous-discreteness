@@ -24,7 +24,7 @@ Notation is that of the note: $k = e^{-2\pi t}$, $R_t$ is the time- $t$ map of $
 Besides $D$, define the second denominator
 
 $$
-E = (1+\cos 2\pi x) + k^{2}\,(1-\cos 2\pi x).
+E = (1+\cos 2\pi x) + k^{2}(1-\cos 2\pi x).
 $$
 
 In half-angle form,
@@ -74,7 +74,7 @@ $$
 so that $D = 2(1+kT^2)/(1+T^2)$, $E = 2(1+k^2T^2)/(1+T^2)$ and
 
 $$
-q := \frac{(1-k)\sin 2\pi x}{D} = \frac{(1-k)\,T}{1+kT^{2}}.
+q := \frac{(1-k)\sin 2\pi x}{D} = \frac{(1-k)T}{1+kT^{2}}.
 $$
 
 A direct computation gives $T-q = kT(1+T^2)/(1+kT^2)$ and $1+qT = (1+T^2)/(1+kT^2)$, hence
@@ -94,7 +94,7 @@ The angle $\pi(x-n)-\arctan q$ is the closed form's $\pi(R_t(x)-n)$. Treat $k$ a
 **B.1 Result 1.** Inside an open cell, with $T=\tan\pi(x-n)$ and $\partial_t k = -2\pi k$, differentiating the cell form gives
 
 $$
-\frac{\partial R_t}{\partial t} = \frac{1}{\pi}\cdot\frac{T\,\partial_t k}{1+k^{2}T^{2}} = -\frac{2kT}{1+k^{2}T^{2}}.
+\frac{\partial R_t}{\partial t} = \frac{1}{\pi}\cdot\frac{T\partial_t k}{1+k^{2}T^{2}} = -\frac{2kT}{1+k^{2}T^{2}}.
 $$
 
 On the other hand, the double-angle formula applied to the arctangent gives
@@ -106,7 +106,7 @@ $$
 which proves the equation of motion inside the cell. At $t=0$, $k=1$ and $R_0(x) = n + \frac1\pi\arctan\tan\pi(x-n) = x$. On the cell boundaries every point is fixed (the numerator of the arctangent argument in the closed form vanishes there), so the equation of motion holds trivially. Using the expressions of A.3 for $E$ and $\sin 2\pi x$, the sine of the transformed angle has the closed form
 
 $$
-\sin\!\big(2\pi R_t(x)\big) = \frac{2kT}{1+k^{2}T^{2}} = \frac{2k\,\sin 2\pi x}{E},
+\sin\!\big(2\pi R_t(x)\big) = \frac{2kT}{1+k^{2}T^{2}} = \frac{2k\sin 2\pi x}{E},
 $$
 
 valid on every open cell; at a half-integer both sides vanish (the point is fixed and $\sin 2\pi x=0$), so it holds on the whole line. For the linearizing form, the cell form gives $\tan(\pi(R_t(x)-n)) = kT$, and the tangent is periodic with period one, so $n$ drops out: $\tan(\pi R_t(x)) = k\tan(\pi x)$.
@@ -152,10 +152,10 @@ Integers contract and half-integers expand, with exactly the rates predicted by 
 **C.2 Dissipation.** The potential is a Lyapunov function:
 
 $$
-\frac{d}{dt}\, V\big(R_t(x)\big) = -\sin^{2}\!\big(2\pi R_t(x)\big) \le 0.
+\frac{d}{dt} V\big(R_t(x)\big) = -\sin^{2}\!\big(2\pi R_t(x)\big) \le 0.
 $$
 
-*Proof.* By the chain rule and Result 1, $V'(R_t)\,\partial_t R_t = \sin(2\pi R_t)\cdot\big(-\sin 2\pi R_t\big)$. $\square$
+*Proof.* By the chain rule and Result 1, $V'(R_t)\partial_t R_t = \sin(2\pi R_t)\cdot\big(-\sin 2\pi R_t\big)$. $\square$
 
 **C.3 Monotone approach to the integers.** The distance to the nearest integer never increases along the flow:
 
@@ -165,12 +165,12 @@ $$
 
 Each closed cell is mapped into itself.
 
-*Proof.* The map is increasing and fixes every half-integer, so at every time it maps each closed cell into itself. On the open cell the cell form gives $|R_t(x)-n| = \frac1\pi\arctan(k\,|T|)$ with $T=\tan\pi(x-n)$. This is nondecreasing in $k$, because $\partial_k\arctan(kT)=T/(1+k^{2}T^{2})$ has the sign of $T$. Since $k=e^{-2\pi t}$ decreases with $t$, the distance is nonincreasing in $t$, for all real times. On the cell boundary the distance is constantly $\tfrac12$. $\square$
+*Proof.* The map is increasing and fixes every half-integer, so at every time it maps each closed cell into itself. On the open cell the cell form gives $|R_t(x)-n| = \frac1\pi\arctan(k|T|)$ with $T=\tan\pi(x-n)$. This is nondecreasing in $k$, because $\partial_k\arctan(kT)=T/(1+k^{2}T^{2})$ has the sign of $T$. Since $k=e^{-2\pi t}$ decreases with $t$, the distance is nonincreasing in $t$, for all real times. On the cell boundary the distance is constantly $\tfrac12$. $\square$
 
 **C.4 Resolution bounds.** For non-negative time, no two points are brought together faster than the contraction factor allows:
 
 $$
-e^{-2\pi t}\,|x-y| \;\le\; |R_t(x) - R_t(y)| \;\le\; e^{2\pi t}\,|x-y|, \qquad t \ge 0.
+e^{-2\pi t}|x-y| \;\le\; |R_t(x) - R_t(y)| \;\le\; e^{2\pi t}|x-y|, \qquad t \ge 0.
 $$
 
 *Proof.* For $t\ge0$ the contraction factor lies in $(0,1]$, so A.1 gives $2k^{2} \le E \le 2$. Therefore the slope satisfies
@@ -210,7 +210,7 @@ $$
 **Asymptotics.** If $k \ll \delta \ll 1$, equivalently $t \gg \frac{1}{2\pi}\ln\frac1\delta$, the unresolved fraction is
 
 $$
-\approx \frac{2\,e^{-2\pi t}}{\pi^{2}\delta},
+\approx \frac{2e^{-2\pi t}}{\pi^{2}\delta},
 $$
 
 with relative error close to $\frac13\big[(k/\pi\delta)^{2} + (\pi\delta)^{2}\big]$. This follows from $\arctan z\sim z$ applied to $z=k/\tan\pi\delta$ (which requires $z\to0$, i.e. $k/\delta\to0$) together with $\tan z\sim z$. Smallness of $k$ and of $\delta$ separately is not enough: the approximation requires $k/\tan\pi\delta$ to be small, and for $\delta \lesssim k$ it fails completely (the exact fraction then tends to $1$, not to $0$). In every case the unresolved fraction decays exponentially in $t$ but is positive at every finite time.
@@ -247,7 +247,7 @@ $$
 So the group law is **relativistic velocity addition** in rapidity form. The hyperbolic distance in the Poincaré disc (curvature $-1$) from the origin to the point $r$ is
 
 $$
-d_{\mathbb{H}}(0,r) = 2\,\mathrm{artanh}(r) = 2\pi t,
+d_{\mathbb{H}}(0,r) = 2\mathrm{artanh}(r) = 2\pi t,
 $$
 
 so time is, up to a constant, hyperbolic distance travelled. Extended to the unit disc, the map sends the origin to the point $r$. The uniform distribution on the circle is the harmonic measure seen from the origin, so its push-forward is the harmonic measure seen from $r$; its density with respect to $d\theta/2\pi$, at the image angle $\theta = 2\pi R_t(x)$, is the Poisson kernel
@@ -269,7 +269,7 @@ This appendix supplements Section 4 of the note.
 **Accuracy of the small-scale form.** Because $\tan z>z$ on $(0,\pi/2)$, the estimate $\frac{1}{2\pi}\ln\frac{1}{\pi^{2}\varepsilon\delta}$ always overshoots the exact time. Expanding $\ln(\tan z/z)=z^2/3+O(z^4)$ gives
 
 $$
-t_\star^{\text{approx}} - t_\star \;\approx\; \frac{\pi}{6}\,\big(\varepsilon^{2}+\delta^{2}\big).
+t_\star^{\text{approx}} - t_\star \;\approx\; \frac{\pi}{6}\big(\varepsilon^{2}+\delta^{2}\big).
 $$
 
 **Numerical check.** Exact values from the closed form (confirmed by a direct root-find of the flow) against the small-scale estimate:
@@ -301,7 +301,7 @@ of a half-integer, that is, $t_\star(\varepsilon_c(t),\delta)=t$. Two such ends 
 **Possible uses (speculative).**
 
 - **Quantization-aware training.** Annealing weights onto an integer grid with a schedule that composes exactly, in place of ad hoc sharpness parameters. The exact composition holds for the regularizer flow alone; combined with a loss gradient the two flows do not commute, and the weights nearest a half-integer are exactly those that stay unresolved longest (Section 4 of the note).
-- **Oscillator-based Ising machines.** The phase equation of a single oscillator under second-harmonic injection locking is this equation after rescaling the phase and the time, so the closed form gives the exact binarization trajectory in the absence of coupling [5]. If the injection strength $a(t)$ enters as a prefactor, the same closed form holds with $t$ replaced by $\int a(t)\,dt$. With Ising couplings present the dynamics is no longer this flow.
+- **Oscillator-based Ising machines.** The phase equation of a single oscillator under second-harmonic injection locking is this equation after rescaling the phase and the time, so the closed form gives the exact binarization trajectory in the absence of coupling [5]. If the injection strength $a(t)$ enters as a prefactor, the same closed form holds with $t$ replaced by $\int a(t)dt$. With Ising couplings present the dynamics is no longer this flow.
 - **Sine-Gordon, Josephson and Frenkel–Kontorova systems.** A solvable toy model for relaxation into quantized states.
 - **Measurement and decoherence.** A cartoon in which an outcome is the infinite-time limit of smooth dynamics. The flow is deterministic: the outcome is fixed by the initial cell and there is no Born rule or probability, so this illustrates the limiting mechanism only.
 - **Coarse-graining.** A concrete example of a group action whose boundary limit is non-invertible, as in renormalization-style pictures.

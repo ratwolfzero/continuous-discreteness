@@ -67,19 +67,19 @@ Throughout, $k = e^{-2\pi t}$, $t$ is any real time, and $R_t$ denotes the time-
 Work inside the open cell around the integer $n$ and set $u = \tan\pi(x-n)$. The double-angle identity gives $\sin 2\pi x = 2u/(1+u^2)$, so
 
 $$
-\dot u = \pi(1+u^{2})\,\dot x = -\pi(1+u^{2})\,\frac{2u}{1+u^{2}} = -2\pi u .
+\dot u = \pi(1+u^{2})\dot x = -\pi(1+u^{2})\frac{2u}{1+u^{2}} = -2\pi u .
 $$
 
 The tangent coordinate linearizes the flow: $u(t) = e^{-2\pi t}u(0)$. Taking the arctangent gives the **cell form**
 
 $$
-R_t(x) = n + \frac{1}{\pi}\arctan\!\Big(k\,\tan \pi(x-n)\Big), \qquad x \in \left(n-\tfrac12,\; n+\tfrac12\right),
+R_t(x) = n + \frac{1}{\pi}\arctan\!\Big(k\tan \pi(x-n)\Big), \qquad x \in \left(n-\tfrac12,\; n+\tfrac12\right),
 $$
 
 together with $R_t(n+\tfrac12) = n+\tfrac12$ on the cell boundaries. Equivalently, wherever the tangent is defined,
 
 $$
-\tan\!\big(\pi R_t(x)\big) = k\,\tan(\pi x).
+\tan\!\big(\pi R_t(x)\big) = k\tan(\pi x).
 $$
 
 ### 2.2 One formula on the whole line
@@ -87,13 +87,13 @@ $$
 The cell form is undefined at the half-integers. A single expression that is valid everywhere uses
 
 $$
-D = (1+\cos 2\pi x) + k\,(1-\cos 2\pi x),
+D = (1+\cos 2\pi x) + k(1-\cos 2\pi x),
 $$
 
 which is strictly positive for every real $x$ and every $k>0$ (the two brackets are non-negative and never vanish together):
 
 $$
-R_t(x) = x - \frac{1}{\pi}\arctan\!\left(\frac{(1-k)\,\sin 2\pi x}{D}\right).
+R_t(x) = x - \frac{1}{\pi}\arctan\!\left(\frac{(1-k)\sin 2\pi x}{D}\right).
 $$
 
 This is smooth in $(x,t)$ on the whole plane, with no branch cuts and no case distinction, it fixes every half-integer (the numerator vanishes there), and it agrees with the cell form on every open cell (Appendix A.3).
@@ -159,14 +159,14 @@ The fixed points keep their linearized rates exactly: the slope of $R_t$ is $e^{
 Take a point at distance $\varepsilon$ from a half-integer, $x = n + \tfrac12 - \varepsilon$ with $0<\varepsilon<\tfrac12$, and ask for the time $t_\star$ at which it lies within distance $\delta$ of its integer $n$, with $0<\delta<\tfrac12$. For this point $\tan\pi(x-n) = \cot\pi\varepsilon$ exactly, so the condition $R_t(x)-n=\delta$ reads $\arctan(k\cot\pi\varepsilon)=\pi\delta$, that is
 
 $$
-k = \tan(\pi\delta)\,\tan(\pi\varepsilon).
+k = \tan(\pi\delta)\tan(\pi\varepsilon).
 $$
 
 Solving for the time gives an exact result:
 
 $$
 t_\star(\varepsilon,\delta)
-= \frac{1}{2\pi}\,\ln\frac{1}{\tan(\pi\delta)\,\tan(\pi\varepsilon)}
+= \frac{1}{2\pi}\ln\frac{1}{\tan(\pi\delta)\tan(\pi\varepsilon)}
 = \frac{1}{2\pi}\ln\cot\pi\varepsilon + \frac{1}{2\pi}\ln\cot\pi\delta .
 $$
 
@@ -175,7 +175,7 @@ It is symmetric in $\varepsilon$ and $\delta$ and splits into one term per scale
 **Small-scale form.** For $\varepsilon,\delta\ll1$, $\tan z\approx z$ gives
 
 $$
-t_\star \approx \frac{1}{2\pi}\,\ln\frac{1}{\pi^{2}\,\varepsilon\,\delta}.
+t_\star \approx \frac{1}{2\pi}\ln\frac{1}{\pi^{2}\varepsilon\delta}.
 $$
 
 The resolution time therefore grows only **logarithmically** in both the distance from the unstable point and the target accuracy. The estimate always overshoots the exact time, by about $\frac{\pi}{6}(\varepsilon^2+\delta^2)$; numerical values are in Appendix F.
