@@ -73,13 +73,13 @@ $$
 The tangent coordinate linearizes the flow: $u(t) = e^{-2\pi t}u(0)$. Taking the arctangent gives the **cell form**
 
 $$
-R_t(x) = n + \frac{1}{\pi}\arctan\!\Big(k\tan \pi(x-n)\Big), \qquad x \in \left(n-\tfrac12,\; n+\tfrac12\right),
+R_t(x) = n + \frac{1}{\pi}\arctan\Big(k\tan \pi(x-n)\Big), \qquad x \in \left(n-\tfrac12, n+\tfrac12\right),
 $$
 
 together with $R_t(n+\tfrac12) = n+\tfrac12$ on the cell boundaries. Equivalently, wherever the tangent is defined,
 
 $$
-\tan\!\big(\pi R_t(x)\big) = k\tan(\pi x).
+\tan\big(\pi R_t(x)\big) = k\tan(\pi x).
 $$
 
 ### 2.2 One formula on the whole line
@@ -93,7 +93,7 @@ $$
 which is strictly positive for every real $x$ and every $k>0$ (the two brackets are non-negative and never vanish together):
 
 $$
-R_t(x) = x - \frac{1}{\pi}\arctan\!\left(\frac{(1-k)\sin 2\pi x}{D}\right).
+R_t(x) = x - \frac{1}{\pi}\arctan\left(\frac{(1-k)\sin 2\pi x}{D}\right).
 $$
 
 This is smooth in $(x,t)$ on the whole plane, with no branch cuts and no case distinction, it fixes every half-integer (the numerator vanishes there), and it agrees with the cell form on every open cell (Appendix A.3).
@@ -107,7 +107,7 @@ Throughout, $x$ and $t$ are real and $n$ is an integer. Proofs are in Appendix B
 **Result 1 (it solves the equation).** The map starts at the identity and satisfies the equation of motion,
 
 $$
-R_0(x) = x, \qquad \partial_t R_t(x) = -\sin\!\big(2\pi R_t(x)\big),
+R_0(x) = x, \qquad \partial_t R_t(x) = -\sin\big(2\pi R_t(x)\big),
 $$
 
 and it linearizes the tangent: $\tan(\pi R_t(x)) = e^{-2\pi t}\tan(\pi x)$ whenever $\cos\pi x \ne 0$.
@@ -137,7 +137,7 @@ So the family is a genuine group of diffeomorphisms of the line for finite time,
 **Result 4 (late-time limit).** On every open cell the map collapses to the integer,
 
 $$
-\lim_{t\to\infty} R_t(x) = n, \qquad x \in \left(n-\tfrac12,\; n+\tfrac12\right).
+\lim_{t\to\infty} R_t(x) = n, \qquad x \in \left(n-\tfrac12, n+\tfrac12\right).
 $$
 
 The limiting map is rounding to the nearest integer, except on the half-integers, which remain fixed. The convergence is pointwise, and uniform only on compact subsets of the open cells: for every finite $t$,
@@ -183,7 +183,7 @@ The resolution time therefore grows only **logarithmically** in both the distanc
 **No finite time resolves everything.** At a fixed time $t$, the starts that are still unresolved are exactly those within
 
 $$
-\varepsilon_c(t) = \frac1\pi\arctan\!\frac{k}{\tan\pi\delta}
+\varepsilon_c(t) = \frac1\pi\arctan\frac{k}{\tan\pi\delta}
 $$
 
 of a half-integer. Since $\varepsilon_c(t)>0$ at every finite time, the unresolved fraction of a uniformly distributed start, $2\varepsilon_c(t)$, is positive at every finite time, although it decays exponentially (Appendix D).

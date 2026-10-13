@@ -80,7 +80,7 @@ $$
 A direct computation gives $T-q = kT(1+T^2)/(1+kT^2)$ and $1+qT = (1+T^2)/(1+kT^2)$, hence
 
 $$
-\tan\!\big(\pi(x-n) - \arctan q\big) = \frac{T-q}{1+qT} = kT.
+\tan\big(\pi(x-n) - \arctan q\big) = \frac{T-q}{1+qT} = kT.
 $$
 
 The angle $\pi(x-n)-\arctan q$ is the closed form's $\pi(R_t(x)-n)$. Treat $k$ as a continuous parameter starting from the value one, where $q=0$ and the angle is $\pi(x-n)\in(-\tfrac\pi2,\tfrac\pi2)$. Its tangent $kT$ is finite for every $k$, so the angle can never reach $\pm\tfrac\pi2$ and stays strictly inside $(-\tfrac\pi2,\tfrac\pi2)$. Hence it equals $\arctan(kT)$, and the closed form and the cell form coincide. The closed form has the advantage of being valid on the cell boundaries too.
@@ -100,13 +100,13 @@ $$
 On the other hand, the double-angle formula applied to the arctangent gives
 
 $$
-\sin\!\big(2\pi R_t\big) = \sin\!\big(2\arctan(kT)\big) = \frac{2kT}{1+k^{2}T^{2}},
+\sin\big(2\pi R_t\big) = \sin\big(2\arctan(kT)\big) = \frac{2kT}{1+k^{2}T^{2}},
 $$
 
 which proves the equation of motion inside the cell. At $t=0$, $k=1$ and $R_0(x) = n + \frac1\pi\arctan\tan\pi(x-n) = x$. On the cell boundaries every point is fixed (the numerator of the arctangent argument in the closed form vanishes there), so the equation of motion holds trivially. Using the expressions of A.3 for $E$ and $\sin 2\pi x$, the sine of the transformed angle has the closed form
 
 $$
-\sin\!\big(2\pi R_t(x)\big) = \frac{2kT}{1+k^{2}T^{2}} = \frac{2k\sin 2\pi x}{E},
+\sin\big(2\pi R_t(x)\big) = \frac{2kT}{1+k^{2}T^{2}} = \frac{2k\sin 2\pi x}{E},
 $$
 
 valid on every open cell; at a half-integer both sides vanish (the point is fixed and $\sin 2\pi x=0$), so it holds on the whole line. For the linearizing form, the cell form gives $\tan(\pi(R_t(x)-n)) = kT$, and the tangent is periodic with period one, so $n$ drops out: $\tan(\pi R_t(x)) = k\tan(\pi x)$.
@@ -130,7 +130,7 @@ Both solve the same ordinary differential equation $\dot y = -\sin(2\pi y)$, and
 **B.4 Result 4.** For a point in an open cell the tangent $T$ is finite and the contraction factor tends to zero. The arctangent is continuous at zero, so
 
 $$
-R_t(x) = n + \frac{1}{\pi}\arctan(kT) \;\longrightarrow\; n .
+R_t(x) = n + \frac{1}{\pi}\arctan(kT) \longrightarrow n .
 $$
 
 The statement about the supremum is proved in Appendix D.
@@ -142,7 +142,7 @@ The statement about the supremum is proved in Appendix D.
 **C.1 Fixed points and their slopes.** Integers and half-integers are fixed at every time, with exact slopes
 
 $$
-\partial_x R_t(n) = e^{-2\pi t}, \qquad \partial_x R_t\!\left(n+\tfrac12\right) = e^{+2\pi t}.
+\partial_x R_t(n) = e^{-2\pi t}, \qquad \partial_x R_t\left(n+\tfrac12\right) = e^{+2\pi t}.
 $$
 
 Integers contract and half-integers expand, with exactly the rates predicted by the linearization of Section 1.
@@ -152,7 +152,7 @@ Integers contract and half-integers expand, with exactly the rates predicted by 
 **C.2 Dissipation.** The potential is a Lyapunov function:
 
 $$
-\frac{d}{dt} V\big(R_t(x)\big) = -\sin^{2}\!\big(2\pi R_t(x)\big) \le 0.
+\frac{d}{dt} V\big(R_t(x)\big) = -\sin^{2}\big(2\pi R_t(x)\big) \le 0.
 $$
 
 *Proof.* By the chain rule and Result 1, $V'(R_t)\partial_t R_t = \sin(2\pi R_t)\cdot\big(-\sin 2\pi R_t\big)$. $\square$
@@ -160,7 +160,7 @@ $$
 **C.3 Monotone approach to the integers.** The distance to the nearest integer never increases along the flow:
 
 $$
-|R_t(x) - n| \le |R_s(x) - n|, \qquad s \le t \ \text{(real, of either sign)}, \quad x \in \left[n-\tfrac12,\; n+\tfrac12\right].
+|R_t(x) - n| \le |R_s(x) - n|, \qquad s \le t  \text{(real, of either sign)}, \quad x \in \left[n-\tfrac12, n+\tfrac12\right].
 $$
 
 Each closed cell is mapped into itself.
@@ -170,13 +170,13 @@ Each closed cell is mapped into itself.
 **C.4 Resolution bounds.** For non-negative time, no two points are brought together faster than the contraction factor allows:
 
 $$
-e^{-2\pi t}|x-y| \;\le\; |R_t(x) - R_t(y)| \;\le\; e^{2\pi t}|x-y|, \qquad t \ge 0.
+e^{-2\pi t}|x-y| \le |R_t(x) - R_t(y)| \le e^{2\pi t}|x-y|, \qquad t \ge 0.
 $$
 
 *Proof.* For $t\ge0$ the contraction factor lies in $(0,1]$, so A.1 gives $2k^{2} \le E \le 2$. Therefore the slope satisfies
 
 $$
-e^{-2\pi t} = k \;\le\; \frac{2k}{E} \;\le\; \frac{1}{k} = e^{2\pi t},
+e^{-2\pi t} = k \le \frac{2k}{E} \le \frac{1}{k} = e^{2\pi t},
 $$
 
 and the mean value theorem gives the stated inequalities. $\square$
@@ -196,7 +196,7 @@ $$
 **The resolved and unresolved fractions.** For $0<\delta<\tfrac12$, the fraction of a uniformly distributed start lying within $\delta$ of an integer at time $t$ is
 
 $$
-2R_{-t}(\delta) = \frac{2}{\pi}\arctan\!\frac{\tan\pi\delta}{k}, \qquad k = e^{-2\pi t},
+2R_{-t}(\delta) = \frac{2}{\pi}\arctan\frac{\tan\pi\delta}{k}, \qquad k = e^{-2\pi t},
 $$
 
 so the unresolved fraction is exactly
@@ -269,7 +269,7 @@ This appendix supplements Section 4 of the note.
 **Accuracy of the small-scale form.** Because $\tan z>z$ on $(0,\pi/2)$, the estimate $\frac{1}{2\pi}\ln\frac{1}{\pi^{2}\varepsilon\delta}$ always overshoots the exact time. Expanding $\ln(\tan z/z)=z^2/3+O(z^4)$ gives
 
 $$
-t_\star^{\text{approx}} - t_\star \;\approx\; \frac{\pi}{6}\big(\varepsilon^{2}+\delta^{2}\big).
+t_\star^{\text{approx}} - t_\star \approx \frac{\pi}{6}\big(\varepsilon^{2}+\delta^{2}\big).
 $$
 
 **Numerical check.** Exact values from the closed form (confirmed by a direct root-find of the flow) against the small-scale estimate:
@@ -287,7 +287,7 @@ The first three rows lie deep in the small-scale regime, where the estimate is a
 **Link to Appendix D.** Fix a time $t$ and invert the formula for $t_\star$: the starts that are still unresolved at that time are exactly those within
 
 $$
-\varepsilon_c(t) = \frac1\pi\arctan\!\frac{k}{\tan\pi\delta}
+\varepsilon_c(t) = \frac1\pi\arctan\frac{k}{\tan\pi\delta}
 $$
 
 of a half-integer, that is, $t_\star(\varepsilon_c(t),\delta)=t$. Two such ends per cell give the unresolved fraction $1-2R_{-t}(\delta)=2\varepsilon_c(t)$ of Appendix D. Since $\varepsilon_c(t)>0$ at every finite time, no finite time resolves every point.
