@@ -234,8 +234,8 @@ $$
 so plus one is the attracting point (the image of the integers) and minus one the repelling point (the image of the half-integers). Composition of two such maps corresponds to multiplying the matrices
 
 $$
-\begin{pmatrix} 1 & r_s \\ r_s & 1 \end{pmatrix}
-\begin{pmatrix} 1 & r_t \\ r_t & 1 \end{pmatrix},
+\begin{pmatrix} 1 & r_s \\\\ r_s & 1 \end{pmatrix}
+\begin{pmatrix} 1 & r_t \\\\ r_t & 1 \end{pmatrix},
 $$
 
 which yields the velocity-addition law
