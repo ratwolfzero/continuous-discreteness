@@ -185,7 +185,7 @@ and the mean value theorem gives the stated inequalities. $\square$
 
 ## D. The limit is not uniform
 
-Result 4 states that the limit holds pointwise on the open cells and uniformly only on compact subsets of them. Because the limit map is discontinuous, uniform convergence on the whole line is impossible: for every finite $t$,
+Result 4 states that the limit holds pointwise on the open cells and uniformly on compact subsets of them. Because the limit map is discontinuous, uniform convergence on the whole line is impossible: for every finite $t$,
 
 $$
 \sup_x \big|R_t(x)-\mathrm{round}(x)\big| = \tfrac{1}{2}.

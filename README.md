@@ -140,7 +140,7 @@ $$
 \lim_{t\to\infty} R_t(x) = n, \qquad x \in \left(n-\tfrac12, n+\tfrac12\right).
 $$
 
-The limiting map is rounding to the nearest integer, except on the half-integers, which remain fixed. The convergence is pointwise, and uniform only on compact subsets of the open cells: for every finite $t$,
+The limiting map is rounding to the nearest integer, except on the half-integers, which remain fixed. The convergence is pointwise, and uniform on compact subsets of the open cells, but not on the whole line: for every finite $t$,
 
 $$
 \sup_x \big|R_t(x) - \mathrm{round}(x)\big| = \tfrac12,
